@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LexJuridica</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://js.puter.com/v2/"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(typeof pdfjsLib!=='undefined') pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0F0F0E;--surface:#1A1A18;--surface2:#222220;--surface3:#2A2A28;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#F0EDE6;--text2:#9A9890;--text3:#5A5855;
+  --gold:#C9A84C;--gold-light:#E8CB7A;--gold-dim:rgba(201,168,76,0.12);
+  --penal:#C0392B;--penal-dim:rgba(192,57,43,0.12);
+  --admin:#2471A3;--admin-dim:rgba(36,113,163,0.12);
+  --civil:#7D3C98;--civil-dim:rgba(125,60,152,0.12);
+  --green:#27AE60;--green-dim:rgba(39,174,96,0.12);
+  --r:10px;--r-lg:16px;
+}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;font-size:14px}
+
+/* ══════════════════════════════
+   LOGIN PAGE
+══════════════════════════════ */
+#login-page{
+  position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:200;
+}
+.login-box{
+  background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:40px;
+  width:100%;max-width:400px;
+}
+.login-logo{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--gold);text-align:center;margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--text3);text-align:center;letter-spacing:2px;text-transform:uppercase;margin-bottom:32px}
+.login-tabs{display:flex;gap:0;background:var(--surface2);border-radius:10px;padding:3px;margin-bottom:24px}
+.login-tab{flex:1;padding:8px;text-align:center;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text3);transition:all .15s;border:none;background:none;font-family:'Instrument Sans',sans-serif}
+.login-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+.login-field{margin-bottom:14px}
+.login-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px}
+.login-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:11px 14px;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:14px;outline:none;transition:border .15s}
+.login-input:focus{border-color:var(--gold)}
+.login-btn{width:100%;padding:12px;background:var(--gold);color:#0F0F0E;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;margin-top:6px}
+.login-btn:hover{background:var(--gold-light)}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
+.login-err{font-size:12px;color:#E74C3C;text-align:center;margin-top:10px;min-height:18px}
+.login-ok{font-size:12px;color:var(--green);text-align:center;margin-top:10px;min-height:18px}
+.login-footer{font-size:11px;color:var(--text3);text-align:center;margin-top:20px;line-height:1.6}
+
+/* ══════════════════════════════
+   APP
+══════════════════════════════ */
+#app-page{display:none}
+.app{display:grid;grid-template-columns:230px 1fr;height:100vh}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.logo-area{padding:24px 20px 16px;border-bottom:1px solid var(--border)}
+.logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--gold)}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.user-pill{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border-radius:8px;margin-top:10px}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0}
+.user-email{font-size:11px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logout-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 4px;border-radius:4px}
+.logout-btn:hover{color:var(--penal)}
+.nav-section{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);padding:16px 20px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;color:var(--text2);font-size:13px;transition:all .15s;border:none;background:none;width:100%;text-align:left;border-left:2px solid transparent}
+.nav-item:hover{color:var(--text);background:var(--surface2)}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:var(--gold-dim)}
+.nav-icon{width:16px;text-align:center;flex-shrink:0}
+.sidebar-bottom{margin-top:auto;padding:16px;border-top:1px solid var(--border)}
+.stat-pill{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.stat-pill-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+.stat-pill-val{font-size:18px;font-family:'Syne',sans-serif;color:var(--gold);font-weight:600}
+.main{display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:600}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.content{flex:1;overflow-y:auto;padding:24px}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px}
+.card-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:600;margin-bottom:12px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-family:'Instrument Sans',sans-serif;font-size:13px;font-weight:500;transition:all .15s}
+.btn-gold{background:var(--gold);color:#0F0F0E}.btn-gold:hover{background:var(--gold-light)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}.btn-ghost:hover{color:var(--text);border-color:var(--gold)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px}
+.input{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;width:100%;outline:none;transition:border .15s}
+.input:focus{border-color:var(--gold)}
+.select{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;outline:none;cursor:pointer}
+.textarea{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;width:100%;outline:none;resize:vertical;transition:border .15s;line-height:1.6}
+.textarea:focus{border-color:var(--gold)}
+.label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;display:block}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.tag-penal{background:var(--penal-dim);color:#E74C3C}
+.tag-admin{background:var(--admin-dim);color:#5DADE2}
+.tag-civil{background:var(--civil-dim);color:#A569BD}
+.upload-zone{border:1.5px dashed var(--border2);border-radius:var(--r-lg);padding:20px;text-align:center;cursor:pointer;transition:all .2s;display:block}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--gold);background:var(--gold-dim)}
+.upload-zone input{display:none}
+.file-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.file-item-name{flex:1;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-item-meta{font-size:11px;color:var(--text3);flex-shrink:0}
+.file-remove{background:none;border:none;cursor:pointer;color:var(--text3);padding:2px 6px;border-radius:4px;font-size:13px}
+.file-remove:hover{color:var(--penal)}
+.juris-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;transition:border .15s}
+.juris-item:hover{border-color:var(--gold)}
+.juris-title{font-weight:500;margin-bottom:4px;font-size:14px}
+.juris-excerpt{font-size:12px;color:var(--text2);margin-top:6px;line-height:1.5}
+.fc-config{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;margin-bottom:16px}
+.card-scene{perspective:1200px;height:220px;margin:16px 0}
+.card-flipper{width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s;position:relative;cursor:pointer}
+.card-flipper.flipped{transform:rotateY(180deg)}
+.card-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;padding:28px;text-align:center;flex-direction:column;gap:12px;border:1px solid var(--border2)}
+.card-front{background:var(--surface)}
+.card-back{background:var(--gold);transform:rotateY(180deg)}
+.card-back .card-text{color:#0F0F0E}
+.card-badge{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;padding:3px 8px;border-radius:20px}
+.card-front .card-badge{background:var(--surface2);color:var(--text3)}
+.card-back .card-badge{background:rgba(0,0,0,0.15);color:rgba(15,15,14,0.7)}
+.card-text{font-size:15px;line-height:1.6}
+.fc-controls{display:flex;gap:10px;justify-content:center;margin:12px 0;flex-wrap:wrap}
+.fc-btn{padding:9px 22px;border-radius:50px;border:1px solid var(--border2);background:var(--surface);cursor:pointer;font-size:13px;font-weight:500;font-family:'Instrument Sans',sans-serif;color:var(--text2);transition:all .15s}
+.fc-btn:hover{border-color:var(--gold);color:var(--gold)}
+.fc-btn.ok{border-color:var(--green);color:var(--green);background:var(--green-dim)}
+.fc-btn.nok{border-color:var(--penal);color:#E74C3C;background:var(--penal-dim)}
+.prog-bar{background:var(--surface2);border-radius:50px;height:4px;overflow:hidden;margin-bottom:6px}
+.prog-fill{height:100%;background:var(--gold);border-radius:50px;transition:width .3s}
+.prog-label{font-size:11px;color:var(--text3);text-align:center}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px}
+.stat-num{font-family:'Syne',sans-serif;font-size:32px;font-weight:700;color:var(--gold)}
+.stat-label{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar-label{width:80px;font-size:12px;color:var(--text2);text-align:right;flex-shrink:0}
+.bar-wrap{flex:1;background:var(--surface2);border-radius:50px;height:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:50px;transition:width .6s}
+.bar-val{width:40px;font-size:12px;color:var(--text3);flex-shrink:0}
+.td-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.td-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.td-title{font-weight:500;flex:1}
+.td-status{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500;flex-shrink:0}
+.td-status.todo{background:var(--surface);color:var(--text3);border:1px solid var(--border2)}
+.td-status.doing{background:var(--admin-dim);color:#5DADE2}
+.td-status.done{background:var(--green-dim);color:#52BE80}
+.td-step{flex:1;height:4px;border-radius:2px;background:var(--surface3)}
+.td-step.filled{background:var(--gold)}
+.loading{display:flex;align-items:center;justify-content:center;gap:12px;padding:40px;color:var(--text3)}
+.spinner{width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.plan-week{margin-bottom:20px}
+.plan-week-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.plan-item{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)}
+.plan-day{width:32px;height:32px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text3);flex-shrink:0}
+.plan-content{flex:1}
+.plan-task{font-size:13px;font-weight:500;margin-bottom:2px}
+.plan-detail{font-size:12px;color:var(--text3)}
+.plan-duration{font-size:12px;color:var(--gold);flex-shrink:0;font-weight:500}
+.empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:12px}
+.empty p{font-size:13px;line-height:1.7}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);padding:28px;max-width:540px;width:90%;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:600;margin-bottom:16px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.hidden{display:none}
+.timer-badge{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--gold);font-family:'Syne',sans-serif;font-weight:600;cursor:pointer}
+.session-active{background:var(--gold-dim);border:1px solid var(--gold);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.session-subject{font-size:12px;font-weight:600;color:var(--gold)}
+.session-time{font-family:'Syne',sans-serif;font-size:16px;color:var(--text);margin-left:auto}
+.rev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.rev-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.rev-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.rev-card.cas::before{background:var(--penal)}.rev-card.arret::before{background:var(--admin)}
+.rev-card.dissert::before{background:var(--civil)}.rev-card.qcm::before{background:var(--green)}
+.rev-card.intro::before{background:var(--gold)}.rev-card.problematique::before{background:#E67E22}
+.rev-card:hover{transform:translateY(-2px);border-color:var(--gold)}
+.rev-card-icon{font-size:26px;margin-bottom:10px}
+.rev-card-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;margin-bottom:5px}
+.rev-card-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 160px)}
+.chat-header-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.chat-back{background:none;border:1px solid var(--border2);border-radius:8px;padding:6px 12px;color:var(--text2);cursor:pointer;font-size:13px;font-family:'Instrument Sans',sans-serif}
+.chat-back:hover{color:var(--text);border-color:var(--gold)}
+.chat-mode-badge{font-size:12px;padding:4px 12px;border-radius:20px;font-weight:500}
+.chat-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-right:4px;margin-bottom:16px}
+.msg{display:flex;gap:10px;align-items:flex-start}
+.msg.user{flex-direction:row-reverse}
+.msg-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.msg-av.ai{background:var(--gold);color:#0F0F0E}
+.msg-av.usr{background:var(--surface2);color:var(--text2)}
+.msg-bubble{max-width:78%;padding:12px 16px;border-radius:14px;font-size:13px;line-height:1.7}
+.msg.ai .msg-bubble{background:var(--surface);border:1px solid var(--border);border-radius:4px 14px 14px 14px}
+.msg.user .msg-bubble{background:var(--surface3);border:1px solid var(--border2);border-radius:14px 4px 14px 14px}
+.msg-bubble h3{font-family:'Syne',sans-serif;font-size:14px;color:var(--gold);margin:10px 0 4px}
+.msg-bubble strong{color:var(--text);font-weight:500}
+.msg-bubble em{color:var(--gold);font-style:normal}
+.typing{display:flex;gap:5px;align-items:center;padding:4px 0}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--text3);animation:bounce 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.chat-input-row{display:flex;gap:10px;align-items:flex-end}
+.chat-input{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;outline:none;resize:none;line-height:1.6;min-height:46px;max-height:160px;transition:border .15s}
+.chat-input:focus{border-color:var(--gold)}
+.send-btn{padding:11px 18px;background:var(--gold);color:#0F0F0E;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:'Instrument Sans',sans-serif;transition:all .15s}
+.send-btn:hover{background:var(--gold-light)}
+.send-btn:disabled{opacity:.4;cursor:not-allowed}
+.qcm-option{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;margin-bottom:8px;cursor:pointer;transition:all .15s;font-size:13px;line-height:1.5;text-align:left;width:100%;color:var(--text);font-family:'Instrument Sans',sans-serif}
+.qcm-option:hover{border-color:var(--gold);background:var(--gold-dim)}
+.qcm-option.correct{border-color:var(--green);background:var(--green-dim);color:#52BE80}
+.qcm-option.wrong{border-color:var(--penal);background:var(--penal-dim);color:#E74C3C}
+.qcm-score{font-family:'Syne',sans-serif;font-size:22px;color:var(--gold);margin:12px 0 6px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     LOGIN PAGE
+══════════════════════════════ -->
+<div id="login-page">
+  <div class="login-box">
+    <div class="login-logo">LexJuridica</div>
+    <div class="login-sub">Plateforme Droit</div>
+
+    <div class="login-tabs">
+      <button class="login-tab active" id="tab-login" onclick="switchTab('login')">Se connecter</button>
+      <button class="login-tab" id="tab-signup" onclick="switchTab('signup')">Créer un compte</button>
+    </div>
+
+    <div id="form-login">
+      <div class="login-field">
+        <label class="login-label">Email</label>
+        <input class="login-input" id="login-email" type="email" placeholder="prenom.nom@univ.fr" autocomplete="email">
+      </div>
+      <div class="login-field">
+        <label class="login-label">Mot de passe</label>
+        <input class="login-input" id="login-pw" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="login-btn" id="login-btn" onclick="doLogin()">Se connecter</button>
+      <div class="login-err" id="login-err"></div>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="switchTab('forgot')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);font-family:'Instrument Sans',sans-serif;text-decoration:underline">Mot de passe oublié ?</button>
+      </div>
+    </div>
+
+    <div id="form-signup" class="hidden">
+      <div class="login-field">
+        <label class="login-label">Prénom & Nom</label>
+        <input class="login-input" id="signup-name" type="text" placeholder="Marie Dupont">
+      </div>
+      <div class="login-field">
+        <label class="login-label">Email</label>
+        <input class="login-input" id="signup-email" type="email" placeholder="prenom.nom@univ.fr">
+      </div>
+      <div class="login-field">
+        <label class="login-label">Mot de passe (min. 6 caractères)</label>
+        <input class="login-input" id="signup-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSignup()">
+      </div>
+      <button class="login-btn" id="signup-btn" onclick="doSignup()">Créer mon compte</button>
+      <div class="login-err" id="signup-err"></div>
+      <div class="login-ok" id="signup-ok"></div>
+    </div>
+
+    <div id="form-forgot" class="hidden">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;text-align:center">
+        Entrez votre email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
+      </div>
+      <div class="login-field">
+        <label class="login-label">Email</label>
+        <input class="login-input" id="forgot-email" type="email" placeholder="prenom.nom@univ.fr" onkeydown="if(event.key==='Enter')doForgot()">
+      </div>
+      <button class="login-btn" id="forgot-btn" onclick="doForgot()">Envoyer le lien de réinitialisation</button>
+      <div class="login-err" id="forgot-err"></div>
+      <div class="login-ok" id="forgot-ok"></div>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="switchTab('login')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);font-family:'Instrument Sans',sans-serif;text-decoration:underline">← Retour à la connexion</button>
+      </div>
+    </div>
+
+    <div class="login-footer">
+      Vos données sont stockées de manière sécurisée.<br>Aucune clé API requise — l'IA est incluse.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     APP
+══════════════════════════════ -->
+<div id="app-page">
+<div class="app">
+<nav class="sidebar">
+  <div class="logo-area">
+    <div class="logo">LexJuridica</div>
+    <div class="logo-sub">Plateforme Droit</div>
+    <div class="user-pill">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div class="user-email" id="user-email">...</div>
+      <button class="logout-btn" onclick="doLogout()" title="Déconnexion">⏻</button>
+    </div>
+  </div>
+  <div class="nav-section">Cours & Révision</div>
+  <button class="nav-item active" onclick="go('dash')"><span class="nav-icon">◈</span>Tableau de bord</button>
+  <button class="nav-item" onclick="go('juris')"><span class="nav-icon">⚖</span>Jurisprudence</button>
+  <button class="nav-item" onclick="go('flash')"><span class="nav-icon">◻</span>Flashcards</button>
+  <button class="nav-item" onclick="go('rev')"><span class="nav-icon">✦</span>Révision IA</button>
+  <div class="nav-section">Planification</div>
+  <button class="nav-item" onclick="go('cal')"><span class="nav-icon">◷</span>Calendrier & Plan</button>
+  <button class="nav-item" onclick="go('td')"><span class="nav-icon">✎</span>TDs</button>
+  <div class="nav-section">Suivi</div>
+  <button class="nav-item" onclick="go('stats')"><span class="nav-icon">▦</span>Statistiques</button>
+  <div class="sidebar-bottom">
+    <div class="stat-pill" style="cursor:pointer;border-color:var(--gold);transition:all .15s" onclick="openModal('modal-groq')" id="groq-pill">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="stat-pill-label">Accès IA</div>
+      <div id="groq-pill-badge" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--surface3);color:var(--text3)">GRATUIT</div>
+    </div>
+    <div id="groq-key-status"><div style="font-size:12px;color:var(--text3)">⚡ Cliquer pour activer l'illimité</div></div>
+  </div>
+      <div class="stat-pill-label">Session en cours</div>
+      <div class="stat-pill-val" id="sb-timer">00:00</div>
+    </div>
+    <select class="select" id="sb-subject" style="width:100%;margin-bottom:8px" onchange="switchSession()">
+      <option value="">— Démarrer session —</option>
+      <option value="penal">Droit pénal</option>
+      <option value="admin">Droit administratif</option>
+      <option value="civil">Droit civil</option>
+    </select>
+    <button class="btn btn-ghost btn-sm" style="width:100%" onclick="stopSession()">Terminer session</button>
+    <div id="quota-bar" style="margin-top:10px"></div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Tableau de bord</div>
+    <div class="topbar-actions">
+      <div class="timer-badge" id="topbar-timer" onclick="go('stats')">⏱ 0h aujourd'hui</div>
+      <label class="btn btn-ghost btn-sm" style="cursor:pointer">
+        + Déposer un fichier
+        <input type="file" style="display:none" accept=".txt,.md,.docx,.pdf" multiple onchange="addFiles(this)">
+      </label>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dash">
+      <!-- Banner freemium — visible si pas de clé -->
+      <div id="freemium-banner" style="display:none;background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.05));border:1px solid var(--gold);border-radius:var(--r-lg);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:14px;cursor:pointer" onclick="openModal('modal-groq')">
+        <div style="font-size:28px;flex-shrink:0">⚡</div>
+        <div style="flex:1">
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px">Passe en illimité — gratuitement</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6">Tu as droit à <strong style="color:var(--text)">1 génération de flashcards</strong> et <strong style="color:var(--text)">1 session de révision</strong> offertes. Ajoute ta clé Groq gratuite (30 sec) pour débloquer l'accès illimité.</div>
+        </div>
+        <div style="background:var(--gold);color:#0F0F0E;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;flex-shrink:0;white-space:nowrap">Activer ✦</div>
+      </div>
+      <div id="unlimited-banner" style="display:none;background:var(--green-dim);border:1px solid var(--green);border-radius:var(--r-lg);padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+        <div style="color:var(--green);font-size:16px">✓</div>
+        <div style="font-size:12px;color:var(--green);flex:1">Accès <strong>illimité</strong> activé — ta clé Groq personnelle est connectée.</div>
+        <button onclick="removeGroqKey()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;padding:2px 6px">Supprimer</button>
+      </div>
+      <div id="session-banner" class="session-active hidden">
+        <div><div class="session-subject" id="session-subject-label"></div><div style="font-size:11px;color:var(--text3)">Session en cours</div></div>
+        <div class="session-time" id="session-time-label">00:00</div>
+        <button class="btn btn-ghost btn-sm" onclick="stopSession()">Terminer</button>
+      </div>
+      <div class="grid-3" style="margin-bottom:16px">
+        <div class="stat-card"><div class="stat-num" id="dash-docs">0</div><div class="stat-label">Documents déposés</div></div>
+        <div class="stat-card"><div class="stat-num" id="dash-juris">0</div><div class="stat-label">Arrêts en base</div></div>
+        <div class="stat-card"><div class="stat-num" id="dash-hours">0h</div><div class="stat-label">Heures totales</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card"><div class="card-title">Prochains partiels</div><div id="dash-exams"><div class="empty"><p>Aucun partiel. Ajoutez-en dans Calendrier.</p></div></div></div>
+        <div class="card"><div class="card-title">TDs en cours</div><div id="dash-tds"><div class="empty"><p>Aucun TD en cours.</p></div></div></div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Documents déposés</div>
+        <div id="dash-files"><div class="empty"><p>Déposez vos cours ici. L'IA les utilisera pour les flashcards et la révision.</p></div></div>
+        <label class="upload-zone" style="margin-top:12px;padding:14px" id="dash-dropzone">
+          <input type="file" accept=".txt,.md,.docx,.pdf" multiple onchange="addFiles(this)">
+          <div style="font-size:13px;color:var(--text3)">📂 Glissez vos fichiers ici · TXT, MD, DOCX</div>
+        </label>
+      </div>
+    </div>
+
+    <!-- JURISPRUDENCE -->
+    <div class="panel" id="panel-juris">
+      <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
+        <input class="input" id="juris-search" placeholder="Rechercher un arrêt…" style="flex:1" oninput="filterJuris()">
+        <select class="select" id="juris-filter" onchange="filterJuris()">
+          <option value="">Toutes matières</option>
+          <option value="penal">Pénal</option><option value="admin">Admin</option><option value="civil">Civil</option>
+        </select>
+        <button class="btn btn-gold btn-sm" onclick="openModal('modal-juris')">+ Ajouter</button>
+      </div>
+      <div id="juris-list"><div class="empty"><div class="empty-icon">⚖</div><p>Déposez des cours pour alimenter la base automatiquement.</p></div></div>
+    </div>
+
+    <!-- FLASHCARDS -->
+    <div class="panel" id="panel-flash">
+      <div class="fc-config">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div><label class="label">Nom du deck</label><input class="input" id="fc-deck-name" placeholder="ex. Droit du travail — L3, Procédure civile partiel…"></div>
+          <div><label class="label">Matière</label><select class="select" id="fc-subject" style="width:100%">
+            <optgroup label="── Licence 1 ──">
+              <option value="introduction au droit">Introduction au droit</option>
+              <option value="droit constitutionnel">Droit constitutionnel</option>
+              <option value="droit civil — personnes et famille">Droit civil — Personnes et famille</option>
+              <option value="histoire du droit">Histoire du droit</option>
+              <option value="institutions juridictionnelles">Institutions juridictionnelles</option>
+            </optgroup>
+            <optgroup label="── Licence 2 ──">
+              <option value="droit pénal général">Droit pénal général</option>
+              <option value="droit administratif">Droit administratif</option>
+              <option value="droit des obligations — contrats">Droit des obligations — Contrats</option>
+              <option value="droit des obligations — responsabilité civile">Droit des obligations — Responsabilité civile</option>
+              <option value="droit des affaires">Droit des affaires</option>
+              <option value="histoire des institutions">Histoire des institutions</option>
+            </optgroup>
+            <optgroup label="── Licence 3 ──">
+              <option value="droit des biens">Droit des biens</option>
+              <option value="droit de la famille">Droit de la famille</option>
+              <option value="droit commercial">Droit commercial</option>
+              <option value="droit du travail">Droit du travail</option>
+              <option value="procédure civile">Procédure civile</option>
+              <option value="procédure pénale">Procédure pénale</option>
+              <option value="droit international privé">Droit international privé</option>
+              <option value="libertés fondamentales">Libertés fondamentales</option>
+              <option value="droit fiscal">Droit fiscal</option>
+            </optgroup>
+            <optgroup label="── Master ──">
+              <option value="droit des sociétés">Droit des sociétés</option>
+              <option value="droit pénal spécial">Droit pénal spécial</option>
+              <option value="droit social">Droit social</option>
+              <option value="droit des contrats spéciaux">Droit des contrats spéciaux</option>
+              <option value="droit international public">Droit international public</option>
+              <option value="droit européen">Droit européen</option>
+              <option value="droit de la propriété intellectuelle">Droit de la propriété intellectuelle</option>
+              <option value="droit bancaire et financier">Droit bancaire et financier</option>
+              <option value="droit des successions">Droit des successions</option>
+              <option value="droit de l'environnement">Droit de l'environnement</option>
+              <option value="droit public des affaires">Droit public des affaires</option>
+              <option value="contentieux administratif">Contentieux administratif</option>
+            </optgroup>
+            <optgroup label="── Autre ──">
+              <option value="autre matière juridique">Autre (préciser dans le focus)</option>
+            </optgroup>
+          </select></div>
+          <div><label class="label">Type d'exercice cible</label><select class="select" id="fc-type" style="width:100%"><option value="cas pratique">Cas pratique</option><option value="commentaire d'arrêt">Commentaire d'arrêt</option><option value="dissertation">Dissertation</option><option value="QCM">QCM partiel</option><option value="définitions">Définitions</option></select></div>
+        </div>
+        <div style="margin-bottom:12px"><label class="label">Focus thématique (optionnel)</label><input class="input" id="fc-topic" placeholder="ex. complicité, responsabilité du fait d'autrui…"></div>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div style="flex:1"><label class="label">Source</label><select class="select" id="fc-source" style="width:100%"><option value="auto">Tous les fichiers déposés</option></select></div>
+          <button class="btn btn-gold" id="fc-gen-btn" onclick="generateFC()">Générer les flashcards ✦</button>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text3)">ℹ L'IA crée autant de cartes que nécessaire — sans limite.</div>
+        <div style="margin-top:10px;display:flex;justify-content:flex-end"><button class="btn btn-ghost btn-sm" onclick="exportFlashcardsPDF()" style="border-color:var(--gold);color:var(--gold);font-size:12px">⬇ Exporter les cartes en PDF</button></div>
+      </div>
+      <div id="fc-area"><div class="empty"><div class="empty-icon">◻</div><p>Déposez vos cours puis générez vos flashcards.</p></div></div>
+
+      <!-- DECKS SAUVEGARDÉS -->
+      <div id="fc-decks-section" style="margin-top:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:600">Mes decks sauvegardés</div>
+        </div>
+
+        <!-- RÉVISION ESPACÉE — bandeau du jour -->
+        <div id="srs-today-banner" style="display:none;background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.05));border:1px solid var(--gold);border-radius:var(--r-lg);padding:14px 18px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:var(--gold)">🧠 Répétition espacée — Aujourd'hui</div>
+            <div id="srs-streak" style="font-size:12px;color:var(--text2)"></div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap" id="srs-deck-stats"></div>
+        </div>
+
+        <div id="fc-decks-list"><div class="empty" style="padding:20px"><p style="font-size:13px">Après chaque génération, sauvegardez vos cartes ici pour les retrouver plus tard.</p></div></div>
+      </div>
+
+      <!-- SESSION RÉPÉTITION ESPACÉE -->
+      <div id="srs-session" style="display:none;margin-top:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <button class="btn btn-ghost btn-sm" onclick="closeSRS()">← Retour</button>
+          <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:600" id="srs-title">Répétition espacée</div>
+          <div style="margin-left:auto;font-size:12px;color:var(--text3)" id="srs-counter"></div>
+        </div>
+        <!-- Barre de progression -->
+        <div class="prog-bar" style="margin-bottom:4px"><div class="prog-fill" id="srs-prog" style="width:0%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:16px">
+          <span id="srs-done-count">0 faites</span>
+          <span id="srs-remain-count">0 restantes</span>
+        </div>
+        <div id="srs-card-area"></div>
+      </div>
+    </div>
+
+    <!-- RÉVISION IA -->
+    <div class="panel" id="panel-rev">
+      <div id="rev-home">
+        <div style="margin-bottom:20px">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px">Module Révision IA</div>
+          <div style="font-size:13px;color:var(--text2)">Choisissez un exercice. L'IA vous guide sans jamais rédiger à votre place.</div>
+        </div>
+
+        <!-- ZONE COLLER DEVOIR -->
+        <div class="card" style="margin-bottom:16px;border-color:var(--gold)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div class="card-title" style="margin:0;font-size:14px">📋 Coller votre devoir / énoncé <span style="font-size:11px;color:var(--text3);font-weight:400">(optionnel)</span></div>
+            <button class="btn btn-ghost btn-sm" onclick="clearPastedContent()" id="clear-paste-btn" style="display:none">✕ Effacer</button>
+          </div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.5">Collez ici votre énoncé de TD, votre cas pratique, votre arrêt à commenter ou votre sujet de dissertation. L'IA travaillera directement dessus.</div>
+          <textarea class="textarea" id="rev-paste-content" rows="4" placeholder="Collez votre énoncé ici… ex: « Le 15 mars 2024, Thomas se rend dans un supermarché... »" oninput="onPasteChange()" style="font-size:13px"></textarea>
+          <div id="paste-preview" style="display:none;margin-top:8px;font-size:12px;color:var(--green)">✓ Énoncé chargé — <span id="paste-wordcount"></span> mots · L'IA travaillera sur ce contenu.</div>
+        </div>
+
+        <!-- FICHE MÉTHODE -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title" style="font-size:13px;margin-bottom:6px">📎 Fiche méthode personnelle <span style="font-size:11px;color:var(--text3);font-weight:400">(optionnel)</span></div>
+          <textarea class="textarea" id="rev-method-text" rows="2" placeholder="Collez ici la méthode de votre professeur… ou laissez vide pour utiliser la méthode standard." style="font-size:12px" oninput="onMethodChange()"></textarea>
+          <div id="method-text-preview" style="display:none;margin-top:6px;font-size:11px;color:var(--gold)">✓ Méthode personnalisée chargée — prioritaire sur la méthode par défaut.</div>
+        </div>
+
+        <div class="rev-grid">
+          <div class="rev-card cas" onclick="startRev('cas')"><div class="rev-card-icon">⚖</div><div class="rev-card-title">Cas pratique</div><div class="rev-card-desc">Collez votre énoncé ou demandez-en un. Résolution guidée étape par étape.</div></div>
+          <div class="rev-card arret" onclick="startRev('arret')"><div class="rev-card-icon">📜</div><div class="rev-card-title">Commentaire d'arrêt</div><div class="rev-card-desc">Collez l'arrêt à commenter. Guidage : faits, problème de droit, plan, rédaction.</div></div>
+          <div class="rev-card dissert" onclick="startRev('dissert')"><div class="rev-card-icon">✍</div><div class="rev-card-title">Dissertation</div><div class="rev-card-desc">Collez votre sujet ou demandez-en un. Construction du plan guidée.</div></div>
+          <div class="rev-card qcm" onclick="startRev('qcm')"><div class="rev-card-icon">◎</div><div class="rev-card-title">QCM type partiel</div><div class="rev-card-desc">10 questions sur votre cours ou la matière choisie.</div></div>
+          <div class="rev-card intro" onclick="startRev('intro')"><div class="rev-card-icon">✒</div><div class="rev-card-title">Rédaction d'introduction</div><div class="rev-card-desc">Rédigez une introduction. L'IA évalue et note sur 15.</div></div>
+          <div class="rev-card problematique" onclick="startRev('problematique')"><div class="rev-card-icon">❓</div><div class="rev-card-title">Problématique</div><div class="rev-card-desc">Identifiez le problème de droit d'un cas ou d'un arrêt.</div></div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div class="card-title">Demande libre</div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Posez n'importe quelle question juridique ou demandez un exercice spécifique.</div>
+          <div style="display:flex;gap:10px">
+            <input class="input" id="rev-free-input" placeholder="ex. Explique-moi la différence entre dol général et dol spécial…" style="flex:1" onkeydown="if(event.key==='Enter')startFreeRev()">
+            <button class="btn btn-gold" onclick="startFreeRev()">Envoyer ✦</button>
+          </div>
+        </div>
+      </div>
+      <div id="rev-chat" class="hidden chat-wrap">
+        <div class="chat-header-bar">
+          <button class="chat-back" onclick="backToRevHome()">← Retour</button>
+          <span class="chat-mode-badge" id="rev-mode-badge" style="background:var(--gold-dim);color:var(--gold)">Mode</span>
+          <select class="select" id="rev-subject" style="margin-left:auto">
+            <optgroup label="Droit privé">
+              <option value="droit pénal général">Droit pénal général</option>
+              <option value="droit pénal spécial">Droit pénal spécial</option>
+              <option value="droit des obligations — contrats">Droit des obligations — Contrats</option>
+              <option value="droit des obligations — responsabilité civile">Droit des obligations — Responsabilité civile</option>
+              <option value="droit des obligations — quasi-contrats">Droit des obligations — Quasi-contrats</option>
+              <option value="droit des personnes et de la famille">Droit des personnes et famille</option>
+              <option value="droit des biens">Droit des biens</option>
+              <option value="droit des sociétés">Droit des sociétés</option>
+              <option value="droit commercial">Droit commercial</option>
+              <option value="droit du travail">Droit du travail</option>
+              <option value="procédure civile">Procédure civile</option>
+            </optgroup>
+            <optgroup label="Droit public">
+              <option value="droit administratif général">Droit administratif général</option>
+              <option value="droit administratif — responsabilité">Droit administratif — Responsabilité</option>
+              <option value="droit constitutionnel">Droit constitutionnel</option>
+              <option value="droit fiscal">Droit fiscal</option>
+              <option value="finances publiques">Finances publiques</option>
+            </optgroup>
+            <optgroup label="Droit international & européen">
+              <option value="droit international public">Droit international public</option>
+              <option value="droit international privé">Droit international privé</option>
+              <option value="droit de l'Union européenne">Droit de l'Union européenne</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="chat-messages" id="rev-messages"></div>
+        <div id="qcm-options-area"></div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="rev-input" placeholder="Votre réponse…" rows="2" onkeydown="handleRevKey(event)"></textarea>
+          <button class="send-btn" id="rev-send-btn" onclick="sendRevMsg()">Envoyer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDRIER -->
+    <div class="panel" id="panel-cal">
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Ajouter un partiel</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div><label class="label">Matière</label><select class="select" id="exam-subject" style="width:100%"><option value="penal">Droit pénal</option><option value="admin">Droit administratif</option><option value="civil">Droit civil</option></select></div>
+            <div><label class="label">Date</label><input class="input" type="date" id="exam-date"></div>
+            <div><label class="label">Type d'épreuve</label><select class="select" id="exam-type" style="width:100%"><option value="cas pratique">Cas pratique</option><option value="commentaire d'arrêt">Commentaire d'arrêt</option><option value="dissertation">Dissertation</option><option value="QCM">QCM</option></select></div>
+            <button class="btn btn-gold" onclick="addExam()">Ajouter</button>
+          </div>
+        </div>
+        <div class="card"><div class="card-title">Partiels enregistrés</div><div id="exam-list-cal"><div class="empty"><p>Aucun partiel.</p></div></div></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="card-title" style="margin:0">Plan de révision IA</div>
+          <button class="btn btn-gold btn-sm" onclick="generatePlan()">Générer ✦</button>
+        </div>
+        <div id="plan-area"><div class="empty"><p>Ajoutez vos partiels puis générez le plan.</p></div></div>
+      </div>
+    </div>
+
+    <!-- TDS -->
+    <div class="panel" id="panel-td">
+      <div style="background:var(--surface);border:1px solid var(--gold);border-radius:var(--r-lg);padding:16px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.7">
+        <strong style="color:var(--gold);display:block;margin-bottom:4px">Suivi des TDs</strong>
+        Ajoutez tous vos TDs ici. L'app suit votre avancement et l'intègre dans vos statistiques.
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn btn-gold btn-sm" onclick="openModal('modal-td')">+ Ajouter un TD</button></div>
+      <div id="td-list"><div class="empty"><div class="empty-icon">✎</div><p>Aucun TD ajouté.</p></div></div>
+    </div>
+
+    <!-- STATS -->
+    <div class="panel" id="panel-stats">
+      <div class="grid-3" style="margin-bottom:16px">
+        <div class="stat-card"><div class="stat-num" id="s-total">0h</div><div class="stat-label">Total travail</div></div>
+        <div class="stat-card"><div class="stat-num" id="s-week">0h</div><div class="stat-label">Cette semaine</div></div>
+        <div class="stat-card"><div class="stat-num" id="s-streak">0j</div><div class="stat-label">Jours consécutifs</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card"><div class="card-title">Heures par matière</div><div id="hours-chart"><div class="empty"><p>Démarrez une session.</p></div></div></div>
+        <div class="card"><div class="card-title">Avancement TDs</div><div id="td-stats"><div class="empty"><p>Aucun TD.</p></div></div></div>
+      </div>
+      <div class="card" style="margin-top:16px"><div class="card-title">Historique des sessions</div><div id="session-history"><div class="empty"><p>Aucune session.</p></div></div></div>
+    </div>
+
+  </div>
+</div>
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay hidden" id="modal-juris">
+  <div class="modal">
+    <div class="modal-title">Ajouter un arrêt</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div><label class="label">Intitulé</label><input class="input" id="j-title" placeholder="Cass. Civ. 1ère, 27 nov. 2019"></div>
+      <div><label class="label">Matière</label><select class="select" id="j-sub" style="width:100%"><option value="penal">Pénal</option><option value="admin">Admin</option><option value="civil">Civil</option></select></div>
+      <div><label class="label">Notion</label><input class="input" id="j-notion" placeholder="Responsabilité des produits défectueux"></div>
+      <div><label class="label">Résumé</label><textarea class="textarea" id="j-text" rows="3" placeholder="Solution, portée, principe…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-juris')">Annuler</button>
+      <button class="btn btn-gold" onclick="saveJuris()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="modal-groq">
+  <div class="modal">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:36px;margin-bottom:8px">⚡</div>
+      <div class="modal-title" style="margin:0">Accès illimité — 100% gratuit</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">Ta clé Groq personnelle = 100 000 tokens/jour rien que pour toi</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+      <div style="background:var(--surface2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+        <div style="background:var(--gold);color:#0F0F0E;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">1</div>
+        <div style="font-size:13px;color:var(--text2)">Va sur <a href="https://console.groq.com" target="_blank" style="color:var(--gold);font-weight:500">console.groq.com</a> → crée un compte gratuit (email uniquement)</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+        <div style="background:var(--gold);color:#0F0F0E;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">2</div>
+        <div style="font-size:13px;color:var(--text2)">Clique sur <strong style="color:var(--text)">API Keys</strong> → <strong style="color:var(--text)">Create API Key</strong> → copie la clé</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+        <div style="background:var(--gold);color:#0F0F0E;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">3</div>
+        <div style="font-size:13px;color:var(--text2)">Colle-la ici ↓</div>
+      </div>
+    </div>
+    <div style="margin-bottom:6px">
+      <input class="input" id="groq-key-input" placeholder="gsk_xxxxxxxxxxxxxxxxxxxx" style="font-family:monospace;font-size:12px;letter-spacing:0.5px">
+    </div>
+    <div id="groq-key-err" style="font-size:12px;color:#E74C3C;min-height:18px;margin-bottom:8px"></div>
+    <div class="modal-footer" style="margin-top:0">
+      <button class="btn btn-ghost" onclick="closeModal('modal-groq')">Plus tard</button>
+      <button class="btn btn-gold" onclick="saveGroqKey()" style="flex:1">⚡ Activer l'accès illimité</button>
+    </div>
+  </div>
+</div>
+  <div class="modal">
+    <div class="modal-title">Ajouter un TD</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div><label class="label">Intitulé</label><input class="input" id="td-title-inp" placeholder="TD n°3 — Responsabilité pénale"></div>
+      <div><label class="label">Matière</label><select class="select" id="td-sub-inp" style="width:100%"><option value="penal">Droit pénal</option><option value="admin">Droit administratif</option><option value="civil">Droit civil</option></select></div>
+      <div><label class="label">Date de rendu</label><input class="input" type="date" id="td-date-inp"></div>
+      <div><label class="label">Étapes (séparées par virgules)</label><input class="input" id="td-steps-inp" placeholder="Lecture, fiche, plan, rédaction"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-td')">Annuler</button>
+      <button class="btn btn-gold" onclick="saveTD()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// ⚙ CONFIG — REMPLACE CES 3 VALEURS APRÈS DÉPLOIEMENT
+// ══════════════════════════════════════════════════════
+const SUPABASE_URL    = 'https://ngshqwspugfrlwatsjkp.supabase.co';       // ex: https://xyz.supabase.co
+const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5nc2hxd3NwdWdmcmx3YXRzamtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzM0MDQsImV4cCI6MjA4OTQ0OTQwNH0.XOpE8Qtva9Sz-ZWVL10YAQslSelG8Gr9TBJRhxtranY';           // clé publique Supabase
+const PROXY_URL       = 'https://lexjuridica-proxy.kanekilaputelapute.workers.dev';          // ex: https://lexjuridica-proxy.xxx.workers.dev
+// ══════════════════════════════════════════════════════
+
+const QUOTA_DAILY = 40; // requêtes IA max par élève par jour (si clé perso)
+const ADMIN_IDS = ['cab4f588-46b2-474b-a3de-ac53221a8e1d']; // admins : quota illimité
+
+// ── FREEMIUM ──
+const FREE_FC_LIMIT  = 1; // générations de flashcards gratuites à vie
+// Révision IA : illimitée — bloquée uniquement si quota provider épuisé
+let userGroqKey = null;   // clé Groq personnelle de l'étudiant
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+let currentUser = null;
+let userToken = null;
+let state = { files:[], juris:[], exams:[], tds:[], sessions:[], stats:{penal:0,admin:0,civil:0}, fcCards:[], fcIdx:0, fcCorrect:0, decks:[] };
+let revMode=null, revHistory=[], revQcmData=null, revQcmIdx=0, revQcmScore=0;
+let methodFileContent = '';
+let pastedContent = '';
+let pastedMethodContent = '';
+
+function onPasteChange() {
+  const val = document.getElementById('rev-paste-content').value.trim();
+  pastedContent = val;
+  const preview = document.getElementById('paste-preview');
+  const clearBtn = document.getElementById('clear-paste-btn');
+  if (val.length > 20) {
+    const words = val.split(/\s+/).length;
+    document.getElementById('paste-wordcount').textContent = words;
+    preview.style.display = 'block';
+    clearBtn.style.display = '';
+  } else {
+    preview.style.display = 'none';
+    clearBtn.style.display = 'none';
+  }
+}
+
+function clearPastedContent() {
+  pastedContent = '';
+  document.getElementById('rev-paste-content').value = '';
+  document.getElementById('paste-preview').style.display = 'none';
+  document.getElementById('clear-paste-btn').style.display = 'none';
+}
+
+function onMethodChange() {
+  const val = document.getElementById('rev-method-text').value.trim();
+  pastedMethodContent = val;
+  document.getElementById('method-text-preview').style.display = val.length > 20 ? 'block' : 'none';
+}
+
+function addMethodFile(input) {
+  const f = input.files[0]; if (!f) return;
+  readFileContent(f).then(content => {
+    methodFileContent = content;
+    const prev = document.getElementById('method-file-preview');
+    if (document.getElementById('method-dropzone')) document.getElementById('method-dropzone').style.display = 'none';
+    if (prev) { prev.style.display = 'block'; prev.innerHTML = `<div class="file-item"><span>📋</span><div class="file-item-name">${f.name}</div><button class="file-remove" onclick="clearMethodFile()">✕</button></div>`; }
+  });
+}
+
+function clearMethodFile() {
+  methodFileContent = '';
+  if (document.getElementById('method-dropzone')) document.getElementById('method-dropzone').style.display = '';
+  const prev = document.getElementById('method-file-preview');
+  if (prev) { prev.style.display = 'none'; prev.innerHTML = ''; }
+  const inp = document.getElementById('method-file-input');
+  if (inp) inp.value = '';
+}
+let quotaToday = 0; // requêtes utilisées aujourd'hui
+
+// ── QUOTA ──
+function getQuotaKey() { return 'lj-quota-'+new Date().toISOString().split('T')[0]+'-'+(currentUser?.id||''); }
+
+async function loadQuota() {
+  // D'abord localStorage (instant)
+  quotaToday = parseInt(localStorage.getItem(getQuotaKey())||'0');
+  updateQuotaUI();
+  // Ensuite Supabase pour sync multi-appareils
+  if (!currentUser) return;
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const { data } = await sb.from('user_quota').select('count').eq('user_id', currentUser.id).eq('date', today).single();
+    if (data) {
+      quotaToday = Math.max(quotaToday, data.count);
+      localStorage.setItem(getQuotaKey(), quotaToday);
+      updateQuotaUI();
+    }
+  } catch(e) { /* table peut ne pas exister, on garde localStorage */ }
+}
+
+async function incrementQuota() {
+  quotaToday++;
+  localStorage.setItem(getQuotaKey(), quotaToday);
+  updateQuotaUI();
+  // Sync Supabase en arrière-plan
+  if (!currentUser) return;
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    await sb.from('user_quota').upsert({ user_id: currentUser.id, date: today, count: quotaToday }, { onConflict: 'user_id,date' });
+  } catch(e) { /* silencieux */ }
+}
+function updateQuotaUI() {
+  const el = document.getElementById('quota-bar');
+  if (!el) return;
+  const pct = Math.min(100, Math.round(quotaToday/QUOTA_DAILY*100));
+  const color = pct>=90?'var(--penal)':pct>=70?'var(--gold)':'var(--green)';
+  el.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px">Quota IA aujourd'hui</span><span style="font-size:11px;color:${color};font-weight:600">${quotaToday}/${QUOTA_DAILY}</span></div><div style="background:var(--surface3);border-radius:50px;height:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${color};border-radius:50px;transition:width .3s"></div></div>`;
+}
+
+// ── AUTH ──
+function switchTab(t) {
+  document.getElementById('form-login').classList.toggle('hidden', t!=='login');
+  document.getElementById('form-signup').classList.toggle('hidden', t!=='signup');
+  document.getElementById('form-forgot').classList.toggle('hidden', t!=='forgot');
+  document.getElementById('tab-login').classList.toggle('active', t==='login');
+  document.getElementById('tab-signup').classList.toggle('active', t==='signup');
+  // Masquer les tabs quand on est sur "forgot"
+  document.querySelector('.login-tabs').style.display = t==='forgot' ? 'none' : '';
+}
+
+async function doForgot() {
+  const email = document.getElementById('forgot-email').value.trim();
+  const btn = document.getElementById('forgot-btn');
+  const err = document.getElementById('forgot-err');
+  const ok = document.getElementById('forgot-ok');
+  err.textContent = ''; ok.textContent = '';
+  if (!email) { err.textContent = 'Entrez votre email.'; return; }
+  btn.disabled = true; btn.textContent = 'Envoi…';
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.href
+  });
+  if (error) {
+    err.textContent = translateError(error.message);
+  } else {
+    ok.textContent = '✓ Email envoyé ! Vérifiez votre boîte mail (et vos spams) pour réinitialiser votre mot de passe.';
+  }
+  btn.disabled = false; btn.textContent = 'Envoyer le lien de réinitialisation';
+}
+
+async function doLogin() {
+  const email=document.getElementById('login-email').value.trim();
+  const pw=document.getElementById('login-pw').value;
+  const btn=document.getElementById('login-btn');
+  const err=document.getElementById('login-err');
+  btn.disabled=true; btn.textContent='Connexion…'; err.textContent='';
+  const {data,error} = await sb.auth.signInWithPassword({email,password:pw});
+  if (error) { err.textContent=translateError(error.message); btn.disabled=false; btn.textContent='Se connecter'; return; }
+  await onLogin(data.user, data.session.access_token);
+}
+
+// ── WHITELIST DOMAINES EMAIL ──
+const ALLOWED_EMAIL_DOMAINS = [
+  'gmail.com','googlemail.com',
+  'outlook.com','outlook.fr','hotmail.com','hotmail.fr','live.com','live.fr','msn.com',
+  'yahoo.com','yahoo.fr','ymail.com',
+  'icloud.com','me.com','mac.com',
+  'protonmail.com','proton.me','pm.me',
+  'laposte.net','orange.fr','sfr.fr','free.fr','wanadoo.fr','bbox.fr',
+  'numericable.fr','bouyguestelecom.fr','neuf.fr',
+];
+
+function isEmailAllowed(email) {
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (!domain) return false;
+  if (domain.endsWith('.fr')) return true;   // tous les .fr acceptés
+  if (domain.endsWith('.edu')) return true;  // universités internationales
+  if (domain.includes('.ac.')) return true;  // ac.uk, ac.be...
+  return ALLOWED_EMAIL_DOMAINS.includes(domain);
+}
+
+async function doSignup() {
+  const name=document.getElementById('signup-name').value.trim();
+  const email=document.getElementById('signup-email').value.trim();
+  const pw=document.getElementById('signup-pw').value;
+  const btn=document.getElementById('signup-btn');
+  const err=document.getElementById('signup-err');
+  const ok=document.getElementById('signup-ok');
+  btn.disabled=true; btn.textContent='Création…'; err.textContent=''; ok.textContent='';
+  if (!name) { err.textContent='Entrez votre prénom et nom.'; btn.disabled=false; btn.textContent='Créer mon compte'; return; }
+  if (!isEmailAllowed(email)) {
+    err.textContent='❌ Adresse non acceptée. Utilise une adresse Gmail, Outlook, Yahoo, ou une adresse en .fr.';
+    btn.disabled=false; btn.textContent='Créer mon compte'; return;
+  }
+  const {data,error} = await sb.auth.signUp({email,password:pw,options:{data:{full_name:name}}});
+  if (error) { err.textContent=translateError(error.message); btn.disabled=false; btn.textContent='Créer mon compte'; return; }
+  if (data.session) {
+    await onLogin(data.user, data.session.access_token);
+  } else {
+    ok.textContent='✓ Compte créé ! Vérifiez votre boîte mail (et vos spams) pour confirmer votre inscription avant de vous connecter.';
+    btn.disabled=false; btn.textContent='Créer mon compte';
+  }
+}
+
+async function onLogin(user, token) {
+  currentUser=user; userToken=token;
+  document.getElementById('user-email').textContent=user.email;
+  document.getElementById('user-avatar').textContent=(user.user_metadata?.full_name||user.email||'?')[0].toUpperCase();
+  await loadUserData();
+  loadQuota();
+  loadFreemiumCounts();
+  // Charger la clé Groq depuis localStorage aussi
+  const localKey = localStorage.getItem('lj-groq-key-'+user.id);
+  if (localKey) { userGroqKey = localKey; }
+  updateGroqKeyUI();
+  // Connexion Puter silencieuse en arrière-plan
+  initPuter(user);
+  document.getElementById('login-page').style.display='none';
+  document.getElementById('app-page').style.display='block';
+  refresh(); updateFCSources(); renderDecks();
+}
+
+async function initPuter(user) {
+  try {
+    // Vérifie si déjà connecté à Puter
+    const isSignedIn = await puter.auth.isSignedIn();
+    if (!isSignedIn) {
+      // Connexion silencieuse — Puter gère l'UI si besoin
+      await puter.auth.signIn();
+    }
+  } catch(e) {
+    // Pas bloquant — on continue sans Puter signin
+    console.log('Puter auth:', e.message);
+  }
+}
+
+async function doLogout() {
+  await saveUserData();
+  await sb.auth.signOut();
+  currentUser=null; userToken=null;
+  state={files:[],juris:[],exams:[],tds:[],sessions:[],stats:{penal:0,admin:0,civil:0},fcCards:[],fcIdx:0,fcCorrect:0};
+  document.getElementById('login-page').style.display='flex';
+  document.getElementById('app-page').style.display='none';
+}
+
+function translateError(msg) {
+  if (msg.includes('Invalid login')) return 'Email ou mot de passe incorrect.';
+  if (msg.includes('already registered')) return 'Cet email est déjà utilisé.';
+  if (msg.includes('Password should')) return 'Le mot de passe doit faire au moins 6 caractères.';
+  if (msg.includes('valid email')) return 'Entrez une adresse email valide.';
+  return msg;
+}
+
+// ── SUPABASE DATA ──
+async function saveUserData() {
+  if (!currentUser) return;
+  try {
+    const toSave = { juris:state.juris, exams:state.exams, tds:state.tds, sessions:state.sessions.slice(-100), stats:state.stats, decks:state.decks||[] };
+    await sb.from('user_data').upsert({ user_id:currentUser.id, data:toSave, updated_at:new Date().toISOString() });
+  } catch(e) { /* fallback localStorage */ localStorage.setItem('lj-'+currentUser.id, JSON.stringify({juris:state.juris,exams:state.exams,tds:state.tds,sessions:state.sessions,stats:state.stats})); }
+}
+
+async function loadUserData() {
+  if (!currentUser) return;
+  try {
+    const {data} = await sb.from('user_data').select('data').eq('user_id',currentUser.id).single();
+    if (data?.data) Object.assign(state, data.data);
+  } catch(e) { try { const d=JSON.parse(localStorage.getItem('lj-'+currentUser.id)||'{}'); Object.assign(state,d); } catch(e2){} }
+}
+
+// Auto-save toutes les 30s
+setInterval(saveUserData, 30000);
+
+// ── CHECK SESSION AU CHARGEMENT ──
+sb.auth.getSession().then(({data:{session}}) => {
+  if (session) onLogin(session.user, session.access_token);
+});
+
+// ── PROXY ──
+// model: "reason" → DeepSeek-R1 (révision juridique)
+// model: "flash"  → Llama-3.3-70b (flashcards : rapide et économique)
+async function callAI(messages, system='', maxTokens=2000, model='reason') {
+  const isAdmin = ADMIN_IDS.includes(currentUser?.id);
+  if (!isAdmin && quotaToday >= QUOTA_DAILY) throw new Error(`Quota journalier atteint (${QUOTA_DAILY} requêtes/jour). Revenez demain !`);
+  incrementQuota();
+  const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer lexjuridica2024' };
+  if (userGroqKey) headers['X-Groq-Key'] = userGroqKey;
+  if (currentUser?.id) headers['X-User-Id'] = currentUser.id; // vérification serveur
+  const resp = await fetch('https://lexjuridica-proxy.kanekilaputelapute.workers.dev', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ model, max_tokens: maxTokens, system, messages })
+  });
+  const data = await resp.json();
+  if (data.error) {
+    // Erreur freemium côté serveur → afficher le modal
+    if (data.error.code === 'FC_LIMIT_REACHED') {
+      openModal('modal-groq');
+      throw new Error(data.error.detail);
+    }
+    throw new Error(data.error.message);
+  }
+  return data.content?.[0]?.text || '';
+}
+// Alias pour la révision IA (DeepSeek-R1 — raisonnement juridique)
+async function callAISonnet(messages, system='', maxTokens=1200) {
+  return callAI(messages, system, maxTokens, 'reason');
+}
+// Alias pour les flashcards (Llama — rapide)
+async function callAIFlash(messages, system='', maxTokens=2000) {
+  return callAI(messages, system, maxTokens, 'flash');
+}
+
+// ── FREEMIUM — compteurs à vie ──
+function getFreemiumKey(type) { return `lj-free-${type}-${currentUser?.id||''}`; }
+function getFreemiumCount(type) { return parseInt(localStorage.getItem(getFreemiumKey(type))||'0'); }
+function incrementFreemium(type) {
+  const n = getFreemiumCount(type) + 1;
+  localStorage.setItem(getFreemiumKey(type), n);
+  // Sync Supabase
+  if (currentUser) {
+    sb.from('user_freemium').upsert({ user_id: currentUser.id, [type]: n }, { onConflict: 'user_id' }).catch(()=>{});
+  }
+  return n;
+}
+async function loadFreemiumCounts() {
+  if (!currentUser) return;
+  try {
+    const { data } = await sb.from('user_freemium').select('fc,rev,groq_key').eq('user_id', currentUser.id).single();
+    if (data) {
+      if (data.fc) localStorage.setItem(getFreemiumKey('fc'), data.fc);
+      if (data.rev) localStorage.setItem(getFreemiumKey('rev'), data.rev);
+      if (data.groq_key) { userGroqKey = data.groq_key; updateGroqKeyUI(); }
+    }
+  } catch(e) { /* table peut ne pas exister */ }
+}
+
+function hasFreemiumLeft(type) {
+  if (userGroqKey) return true; // clé perso → illimité
+  if (type !== 'fc') return true; // révision toujours autorisée
+  return getFreemiumCount('fc') < FREE_FC_LIMIT;
+}
+
+function checkFreemium(type) {
+  if (hasFreemiumLeft(type)) return true;
+  openModal('modal-groq');
+  return false;
+}
+
+// ── CLÉ GROQ PERSO ──
+async function saveGroqKey() {
+  const key = document.getElementById('groq-key-input').value.trim();
+  if (!key.startsWith('gsk_')) {
+    document.getElementById('groq-key-err').textContent = 'Clé invalide — elle doit commencer par gsk_';
+    return;
+  }
+  userGroqKey = key;
+  localStorage.setItem('lj-groq-key-'+(currentUser?.id||''), key);
+  if (currentUser) {
+    await sb.from('user_freemium').upsert({ user_id: currentUser.id, groq_key: key }, { onConflict: 'user_id' }).catch(()=>{});
+  }
+  updateGroqKeyUI();
+  closeModal('modal-groq');
+}
+
+function updateGroqKeyUI() {
+  const statusEl = document.getElementById('groq-key-status');
+  const pillBadge = document.getElementById('groq-pill-badge');
+  const pill = document.getElementById('groq-pill');
+  const freemiumBanner = document.getElementById('freemium-banner');
+  const unlimitedBanner = document.getElementById('unlimited-banner');
+
+  if (userGroqKey) {
+    // État : illimité
+    if (statusEl) statusEl.innerHTML = `<div style="font-size:12px;color:var(--green);font-weight:500">✓ Clé active — illimité</div>`;
+    if (pillBadge) { pillBadge.textContent = 'ILLIMITÉ'; pillBadge.style.background = 'var(--green-dim)'; pillBadge.style.color = '#52BE80'; }
+    if (pill) pill.style.borderColor = 'var(--green)';
+    if (freemiumBanner) freemiumBanner.style.display = 'none';
+    if (unlimitedBanner) unlimitedBanner.style.display = 'flex';
+  } else {
+    // État : freemium
+    const fcLeft = Math.max(0, FREE_FC_LIMIT - getFreemiumCount('fc'));
+    if (statusEl) statusEl.innerHTML = `<div style="font-size:11px;color:var(--text3);line-height:1.6">${fcLeft} génération flashcards gratuite · révision illimitée</div>`;
+    if (pillBadge) { pillBadge.textContent = 'GRATUIT'; pillBadge.style.background = 'var(--surface3)'; pillBadge.style.color = 'var(--text3)'; }
+    if (pill) pill.style.borderColor = 'var(--gold)';
+    if (freemiumBanner) freemiumBanner.style.display = 'flex';
+    if (unlimitedBanner) unlimitedBanner.style.display = 'none';
+  }
+}
+
+function removeGroqKey() {
+  userGroqKey = null;
+  localStorage.removeItem('lj-groq-key-'+(currentUser?.id||''));
+  if (currentUser) sb.from('user_freemium').upsert({ user_id: currentUser.id, groq_key: null }, { onConflict: 'user_id' }).catch(()=>{});
+  updateGroqKeyUI();
+}
+
+// ── NAV ──
+const TITLES={dash:'Tableau de bord',juris:'Jurisprudence',flash:'Flashcards',rev:'Révision IA',cal:'Calendrier & Plan',td:'TDs',stats:'Statistiques'};
+function go(p){
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('panel-'+p).classList.add('active');
+  document.getElementById('topbar-title').textContent=TITLES[p]||p;
+  const map={dash:0,juris:1,flash:2,rev:3,cal:4,td:5,stats:6};
+  if(map[p]!==undefined) document.querySelectorAll('.nav-item')[map[p]].classList.add('active');
+  if(p==='rev'){document.getElementById('rev-home').classList.remove('hidden');document.getElementById('rev-chat').classList.add('hidden');}
+  refresh();
+}
+
+// ── FILES ──
+async function readFileContent(f) {
+  if (f.name.toLowerCase().endsWith('.pdf')) {
+    return await readPDF(f);
+  }
+  return new Promise((resolve) => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.readAsText(f);
+  });
+}
+
+async function readPDF(f) {
+  try {
+    const arrayBuffer = await f.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(item => item.str).join(' ') + '\n';
+    }
+    return text.trim() || '[PDF sans texte extractible — scannez le document ou exportez-le en texte]';
+  } catch(e) {
+    return '[Erreur lecture PDF: ' + e.message + ']';
+  }
+}
+
+function addFiles(input){
+  Array.from(input.files||[]).forEach(async f=>{
+    const loadingName = f.name;
+    state.files.push({name:loadingName,size:f.size,content:'Chargement…',added:new Date().toISOString(),subject:guessSubject(f.name)});
+    refresh();
+    const content = await readFileContent(f);
+    const idx = state.files.findIndex(x=>x.name===loadingName&&x.content==='Chargement…');
+    if(idx>=0){
+      state.files[idx].content = content;
+      state.files[idx].subject = guessSubject(f.name+' '+content.slice(0,300));
+    }
+    updateFCSources(); autoExtractJuris(content,f.name); saveUserData(); refresh();
+  });
+}
+function guessSubject(t){t=t.toLowerCase();if(t.includes('pénal')||t.includes('penal')||t.includes('infraction'))return'penal';if(t.includes('admin')||t.includes('administratif'))return'admin';if(t.includes('civil')||t.includes('obligation')||t.includes('contrat'))return'civil';return'general';}
+function updateFCSources(){const sel=document.getElementById('fc-source');if(!sel)return;sel.innerHTML='<option value="auto">Tous les fichiers déposés</option>';state.files.forEach((f,i)=>{const o=document.createElement('option');o.value=i;o.textContent=f.name;sel.appendChild(o);});}
+function autoExtractJuris(content,fname){const pat=/(?:Cass\.?\s*(?:civ|com|soc|crim|req)\.?|Cour\s+de\s+cassation|Conseil\s+d['']État|CE\s+\d|T\.A\.|C\.A\.)[^\n]{0,150}/gi;const seen=new Set(state.juris.map(j=>j.title));(content.match(pat)||[]).slice(0,40).forEach(m=>{const c=m.trim().replace(/\s+/g,' ');if(c.length>12&&!seen.has(c)){seen.add(c);state.juris.push({title:c,subject:guessSubject(fname+' '+c),notion:'',text:'(extrait automatique)',source:fname,date:new Date().toISOString()});}});}
+function removeFile(i){state.files.splice(i,1);saveUserData();refresh();updateFCSources();}
+
+// ── JURIS ──
+function filterJuris(){
+  const q=(document.getElementById('juris-search').value||'').toLowerCase();
+  const f=document.getElementById('juris-filter').value;
+  const list=state.juris.filter(j=>(!q||j.title.toLowerCase().includes(q)||(j.notion||'').toLowerCase().includes(q)||(j.text||'').toLowerCase().includes(q))&&(!f||j.subject===f));
+  document.getElementById('juris-list').innerHTML=list.length?list.map((j,i)=>{
+    const idx = state.juris.indexOf(j);
+    return `<div class="juris-item" id="juris-card-${idx}">
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+            <div class="juris-title" style="font-size:13px;font-weight:600">${j.title}</div>
+            <span class="tag tag-${j.subject}" style="flex-shrink:0">${j.subject}</span>
+          </div>
+          ${j.notion?`<div style="font-size:12px;color:var(--gold);font-weight:500">${j.notion}</div>`:'<div style="font-size:12px;color:var(--text3);font-style:italic">Portée non renseignée</div>'}
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;align-items:center">
+          <button onclick="toggleJurisDetail(${idx})" style="background:var(--surface3);border:1px solid var(--border2);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--text2);cursor:pointer;font-family:'Instrument Sans',sans-serif" id="juris-btn-${idx}">Détails ▾</button>
+          <button onclick="deleteJuris(${idx})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 6px;border-radius:4px" title="Supprimer">✕</button>
+        </div>
+      </div>
+      <div id="juris-detail-${idx}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        ${j.text&&j.text!=='(extrait automatique)'?`<div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px">${j.text}</div>`:''}
+        ${j.source?`<div style="font-size:11px;color:var(--text3)">Source : ${j.source}</div>`:''}
+        ${j.date?`<div style="font-size:11px;color:var(--text3)">Ajouté le ${new Date(j.date).toLocaleDateString('fr-FR')}</div>`:''}
+      </div>
+    </div>`;
+  }).join(''):'<div class="empty"><div class="empty-icon">⚖</div><p>Aucun arrêt trouvé.</p></div>';
+}
+
+function toggleJurisDetail(idx) {
+  const detail = document.getElementById(`juris-detail-${idx}`);
+  const btn = document.getElementById(`juris-btn-${idx}`);
+  if (!detail) return;
+  const open = detail.style.display === 'block';
+  detail.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? 'Détails ▾' : 'Réduire ▴';
+}
+
+function deleteJuris(idx) {
+  if (!confirm('Supprimer cet arrêt ?')) return;
+  state.juris.splice(idx, 1);
+  saveUserData();
+  filterJuris();
+  refresh();
+}
+function saveJuris(){const t=document.getElementById('j-title').value.trim();if(!t)return;state.juris.push({title:t,subject:document.getElementById('j-sub').value,notion:document.getElementById('j-notion').value,text:document.getElementById('j-text').value,source:'Manuel',date:new Date().toISOString()});saveUserData();closeModal('modal-juris');refresh();['j-title','j-notion','j-text'].forEach(id=>{document.getElementById(id).value='';});}
+
+// ── FLASHCARDS ──
+async function generateFC(){
+  if(!state.files.length){alert('Déposez d\'abord un cours dans le tableau de bord.');return;}
+  // La limite freemium est vérifiée côté serveur (Worker) — pas de check client contournable
+  const btn=document.getElementById('fc-gen-btn');btn.disabled=true;
+  const area=document.getElementById('fc-area');
+  const subject=document.getElementById('fc-subject').value,type=document.getElementById('fc-type').value,topic=document.getElementById('fc-topic').value.trim();
+  const srcIdx=document.getElementById('fc-source').value;
+  const fullContent=srcIdx==='auto'?state.files.map(f=>f.content).join('\n\n---\n\n'):(state.files[parseInt(srcIdx)]?.content||'');
+  if(!fullContent.trim()){area.innerHTML='<div class="empty"><p>Contenu vide. Vérifiez que le fichier est lisible.</p></div>';btn.disabled=false;btn.textContent='Générer les flashcards ✦';return;}
+
+  // Découpage intelligent par sections naturelles du cours
+  // Détecte les titres : PARTIE, SECTION, §, CHAPITRE, INDEX, MÉTHODE, INTRODUCTION, TABLEAU
+  // Si pas de titres trouvés → fallback sur chunks de 3000 mots
+  function splitBySections(text) {
+    const SECTION_REGEX = /(?=\n\s*(?:PARTIE\s+\d|SECTION\s+\d|§\s*\d|CHAPITRE\s+\d|INDEX\s+DES|MÉTHODE\s+CAS|INTRODUCTION\s+—|TABLEAU\s+|I{1,3}V?\.\s+|[IVX]+\.\s+[A-ZÀÉÈÊ]))/gi;
+    const MAX_WORDS_PER_CHUNK = 2500; // sécurité si une section est trop longue
+    const MIN_WORDS_PER_CHUNK = 200;  // on fusionne les sections trop petites
+
+    let rawSections = text.split(SECTION_REGEX).map(s => s.trim()).filter(s => s.length > 50);
+
+    // Si aucune section détectée → fallback mots
+    if (rawSections.length <= 1) {
+      const words = text.split(/\s+/);
+      const out = [];
+      for (let i = 0; i < words.length; i += 3000) out.push(words.slice(i, i+3000).join(' '));
+      return out;
+    }
+
+    // Fusionner les sections trop petites avec la suivante
+    // et découper les sections trop grandes
+    const finalChunks = [];
+    let buffer = '';
+    for (const section of rawSections) {
+      const combined = buffer ? buffer + '\n\n' + section : section;
+      const wordCount = combined.split(/\s+/).length;
+      if (wordCount < MIN_WORDS_PER_CHUNK) {
+        buffer = combined; // trop petit → on accumule
+      } else if (wordCount > MAX_WORDS_PER_CHUNK) {
+        // Section trop longue → on flush le buffer puis on découpe la section
+        if (buffer) { finalChunks.push(buffer); buffer = ''; }
+        const words = section.split(/\s+/);
+        for (let i = 0; i < words.length; i += MAX_WORDS_PER_CHUNK) {
+          finalChunks.push(words.slice(i, i + MAX_WORDS_PER_CHUNK).join(' '));
+        }
+      } else {
+        if (buffer) finalChunks.push(buffer);
+        buffer = section;
+      }
+    }
+    if (buffer) finalChunks.push(buffer);
+    return finalChunks;
+  }
+
+  let chunks = splitBySections(fullContent);
+
+  const totalChunks = chunks.length;
+  let allCards = [];
+
+  area.innerHTML = `<div class="loading"><div class="spinner"></div><span id="fc-progress">Analyse partie 1/${totalChunks} du cours…</span></div>`;
+
+  const system = `Tu es un professeur de droit français expert en pédagogie active. Tu crées des flashcards de haute qualité pour aider les étudiants à réussir leurs examens de ${subject} (objectif : ${type}). ${topic?'FOCUS THÉMATIQUE : '+topic:''}
+
+RÈGLES DE QUALITÉ ABSOLUES :
+- Chaque carte doit être autonome : lisible et compréhensible sans le cours
+- Les questions doivent être précises, jamais vagues ("Qu'est-ce que X ?" → interdit)
+- Les réponses doivent être complètes mais concises : définition + conditions + nuance + arrêt de référence si pertinent
+- Toujours citer juridiction + date pour les arrêts (ex: "Cass. civ. 2e, 19 juin 2003")
+- Ne jamais inventer d'arrêts ou d'articles — uniquement ce qui est dans le texte
+- Langue juridique précise, vocabulaire technique exact
+
+TYPES DE CARTES À GÉNÉRER (couvre TOUT le contenu) :
+
+1. ARRÊT — une carte par arrêt mentionné
+   Q: "Arrêt [Juridiction, date] — Quel est l'apport ?"
+   A: "Faits : [bref]. Solution : [principe exact]. Portée : [impact sur le droit positif]. Revirement ? [oui/non + ancien état du droit si oui]."
+   cat: "Arrêt"
+
+2. DÉFINITION — une carte par notion juridique clé
+   Q: "Définir précisément : [notion]"
+   A: "[Définition exacte issue du cours]. Éléments constitutifs : 1)... 2)... 3)... Article de référence : [si mentionné]."
+   cat: "Définition"
+
+3. CONDITIONS — une carte par mécanisme avec conditions cumulatives/alternatives
+   Q: "Quelles sont les conditions [cumulatives/alternatives] de [mécanisme] ?"
+   A: "Conditions : 1) [condition + précision] 2) [condition + précision] 3) [condition + précision]. Attention : [piège ou exception fréquente]."
+   cat: "Conditions"
+
+4. ARTICLE — une carte par article de loi cité
+   Q: "Que dispose l'article [X] du [Code] ?"
+   A: "[Contenu exact]. Portée pratique : [application concrète]. Lien avec : [arrêt ou mécanisme associé si mentionné]."
+   cat: "Article"
+
+5. DISTINCTION — une carte par distinction importante
+   Q: "Quelle est la distinction entre [A] et [B] ?"
+   A: "[A] = [définition]. [B] = [définition]. Différence clé : [critère de distinction]. Intérêt pratique : [pourquoi ça compte]."
+   cat: "Distinction"
+
+6. RÉGIME — une carte par régime juridique (responsabilité, nullité, prescription...)
+   Q: "Quel est le régime juridique de [mécanisme] ?"
+   A: "Fondement : [article/texte]. Conditions : [liste]. Effets : [conséquences juridiques]. Exonérations/exceptions : [si applicable]."
+   cat: "Régime"
+
+7. PIÈGE — une carte par erreur classique ou confusion fréquente signalée dans le cours
+   Q: "⚠ Piège : [erreur classique ou fausse croyance]"
+   A: "FAUX : [l'erreur]. CORRECT : [la bonne règle]. Pourquoi : [explication]. Arrêt ou texte : [référence si disponible]."
+   cat: "Piège"
+
+RÈGLE FINALE : Génère UNE carte par élément important. Pas de carte vide, pas de carte trop courte (réponse < 20 mots = insuffisant). Couvre tout le contenu sans rien sauter.
+Réponds UNIQUEMENT avec du JSON valide, sans texte ni backticks avant/après :
+[{"q":"question","a":"réponse","cat":"catégorie"}]`;
+
+  try {
+    for (let i = 0; i < chunks.length; i++) {
+      // Titre court de la section pour l'affichage
+      const sectionTitle = chunks[i].split('\n')[0].trim().slice(0, 60) || `Section ${i+1}`;
+      document.getElementById('fc-progress').textContent = `Analyse "${sectionTitle}"… (${i+1}/${totalChunks} — ${allCards.length} cartes)`;
+      // 22s entre chaque chunk pour rester sous le quota TPM Groq
+      if (i > 0) {
+        for (let s = 22; s > 0; s--) {
+          document.getElementById('fc-progress').textContent = `Pause anti-quota… ${s}s — "${sectionTitle}" dans un instant (${allCards.length} cartes)`;
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      }
+      const raw = await callAIFlash([{role:'user',content:`Section du cours "${sectionTitle}" (${i+1}/${totalChunks}):\n\n${chunks[i]}\n\nGénère toutes les flashcards nécessaires pour couvrir cette section.`}], system, 2000);
+      const clean = raw.replace(/```json|```/g,'').trim();
+      let cards = [];
+      try { cards = JSON.parse(clean); }
+      catch(e) { const m = clean.match(/\[[\s\S]*?\]/); if(m) try { cards = JSON.parse(m[0]); } catch(e2){} }
+      if (Array.isArray(cards)) allCards = allCards.concat(cards);
+    }
+
+    if(!allCards.length) throw new Error('Aucune carte générée — vérifiez que le fichier contient du texte lisible.');
+
+    // Dédoublonner par question
+    const seen = new Set();
+    allCards = allCards.filter(c => { const k = c.q?.toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true; });
+
+    area.innerHTML = `<div style="background:var(--green-dim);border:1px solid var(--green);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--green);display:flex;align-items:center;justify-content:space-between">
+      <span>✓ ${allCards.length} flashcards générées depuis ${totalChunks} partie(s) du cours.</span>
+      <button class="btn btn-gold btn-sm" onclick="saveDeck()" style="flex-shrink:0">💾 Sauvegarder</button>
+    </div>`;
+    state.fcCards=allCards; state.fcIdx=0; state.fcCorrect=0;
+    // Auto-save immédiat du deck
+    autoSaveDeck(subject, allCards);
+    setTimeout(renderFC, 800);
+
+  } catch(e) {
+    area.innerHTML=`<div class="empty"><div class="empty-icon">⚠</div><p>Erreur: ${e.message}</p></div>`;
+  }
+  btn.disabled=false; btn.textContent='Générer les flashcards ✦';
+}
+function renderFC(){
+  const cards=state.fcCards;if(!cards.length)return;
+  const area=document.getElementById('fc-area'),pct=Math.round(state.fcIdx/cards.length*100),c=cards[state.fcIdx];
+  const isArret = (c.cat||'').toLowerCase().includes('arrêt') || (c.cat||'').toLowerCase().includes('arret');
+  const catStyle = isArret ? 'background:var(--penal-dim);color:#E74C3C' : 'background:var(--surface2);color:var(--text3)';
+  area.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <span style="font-size:12px;color:var(--text3)">${state.fcIdx+1}/${cards.length} · ${state.fcCorrect} maîtrisées</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="tag" style="${catStyle}">${c.cat||''}</span>
+      <button onclick="saveDeck()" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--text3);cursor:pointer;font-family:'Instrument Sans',sans-serif" title="Sauvegarder le deck">💾</button>
+    </div>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+  <div class="prog-label" style="margin-bottom:12px">${pct}% parcouru</div>
+  <div class="card-scene">
+    <div class="card-flipper" id="fc-flip" onclick="flipFC()">
+      <div class="card-face card-front">
+        <span class="card-badge">${isArret ? '⚖ Arrêt' : 'Question'}</span>
+        <div class="card-text">${c.q}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px">Cliquez pour voir la portée</div>
+      </div>
+      <div class="card-face card-back">
+        <span class="card-badge" style="background:rgba(0,0,0,0.15);color:rgba(15,15,14,0.6)">${isArret ? 'Portée & Principe' : 'Réponse'}</span>
+        <div class="card-text" style="font-size:13px;line-height:1.7">${c.a}</div>
+      </div>
+    </div>
+  </div>
+  <div class="fc-controls">
+    <button class="fc-btn" onclick="flipFC()">↩ Retourner</button>
+    <button class="fc-btn nok" onclick="nextFC(false)">✗ À revoir</button>
+    <button class="fc-btn ok" onclick="nextFC(true)">✓ Maîtrisé</button>
+  </div>`;
+}
+function flipFC(){const f=document.getElementById('fc-flip');if(f)f.classList.toggle('flipped');}
+function nextFC(ok){if(ok)state.fcCorrect++;state.fcIdx++;if(state.fcIdx>=state.fcCards.length){const pct=Math.round(state.fcCorrect/state.fcCards.length*100);document.getElementById('fc-area').innerHTML=`<div class="empty"><div style="font-size:32px;margin-bottom:8px">${pct>=75?'✦':'◎'}</div><div class="qcm-score">${state.fcCorrect}/${state.fcCards.length} — ${pct}%</div><p style="margin-bottom:16px">${pct>=80?'Excellent !':pct>=60?'Bon résultat !':'Encore du travail.'}</p><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn btn-gold" onclick="state.fcIdx=0;state.fcCorrect=0;renderFC()">Recommencer ↺</button><button class="btn btn-ghost" onclick="saveDeck()" style="border-color:var(--green);color:var(--green)">💾 Sauvegarder le deck</button><button class="btn btn-ghost" onclick="generateFC()">Nouvelle session ✦</button><button class="btn btn-ghost" onclick="exportFlashcardsPDF()" style="border-color:var(--gold);color:var(--gold)">⬇ PDF</button></div></div>`;return;}renderFC();}
+
+// ── RÉVISION IA ──
+const PEDAGOGIE = `
+RÈGLE ABSOLUE — TU NE RÉDIGES JAMAIS À LA PLACE DE L'ÉTUDIANT.
+Tu es un tuteur socratique, pas un correcteur qui donne les réponses.
+Ton rôle : faire réfléchir, questionner, débloquer, corriger les erreurs — jamais écrire à leur place.
+
+COMPORTEMENT OBLIGATOIRE :
+- Tu poses des questions pour guider ("Quelle est selon toi la qualification des faits ?", "Quel article s'applique ici ?")
+- Si l'étudiant donne une mauvaise réponse : tu expliques POURQUOI c'est faux et tu repostes la question autrement
+- Si l'étudiant donne une bonne réponse : tu valides, tu approfondis, tu passes à l'étape suivante
+- Tu n'écris JAMAIS un paragraphe entier de correction, une introduction complète, un plan rédigé, un syllogisme complet
+- Tu peux donner des exemples courts (1-2 phrases max) pour illustrer un concept, jamais une réponse complète
+- Si l'étudiant te demande "écris pour moi" ou "donne-moi la réponse" : tu refuses poliment et tu recentres sur une question
+- Tu encourages, tu es bienveillant, tu valorises les efforts
+
+Si l'étudiant dépose sa propre fiche méthode dans ses fichiers, tu l'appliques prioritairement.
+`;
+
+const METHODE_CAS = `
+MÉTHODE CAS PRATIQUE (par défaut si l'étudiant n'en fournit pas) :
+Structure du syllogisme juridique :
+1. MAJEURE : règle de droit applicable (article + jurisprudence)
+2. MINEURE : application aux faits ("En l'espèce...")
+3. CONCLUSION : solution juridique
+
+Étapes à suivre dans l'ordre :
+1. Qualification juridique des faits (identifier les personnes, actes, infractions potentielles)
+2. Identification du/des problème(s) juridique(s)
+3. Majeure : règle(s) de droit applicable(s) — article + JP
+4. Mineure : application des règles aux faits concrets
+5. Conclusion : solution et conseils
+
+Règles méthodologiques importantes :
+- Rigueur : toujours citer articles + dates d'arrêts + portée
+- Ne jamais citer un arrêt sans donner juridiction, date, portée
+- Ne pas citer une exception sans d'abord poser le principe
+- Pas de titres "commentaires d'arrêt" dans un cas pratique
+- Titres simples : une partie par personnage ou par problème
+- Bannir les expressions orales ("du coup", "son ex")
+- Faire des phrases courtes, claires, avec vocabulaire juridique précis
+`;
+
+const METHODE_ARRET = `
+MÉTHODE COMMENTAIRE D'ARRÊT (par défaut si l'étudiant n'en fournit pas) :
+Source : Méthodologie Droit des obligations L2, 2025-2026.
+
+INTRODUCTION (fiche d'arrêt) :
+1. Accroche (citation, adage, actualité de la décision)
+2. Faits pertinents (ordre chronologique, qualification juridique des parties)
+3. Procédure (nature de l'action, juridictions, dates)
+4. Prétentions des parties (thèse demandeur vs défendeur)
+5. Problème de droit (formulé de manière abstraite mais précise — jamais réutilisable pour un autre arrêt)
+6. Solution de la Cour
+7. Annonce du plan justifiée
+
+CORPS DU COMMENTAIRE : structure I / A / B — transition — II / A / B
+- Chaque titre : caractérisé + qualifié + court, sans verbe conjugué
+- Commenter = expliquer SENS + VALEUR + PORTÉE de l'arrêt
+- Ne pas paraphraser l'arrêt
+- Ne pas faire une dissertation générale
+
+PIÈGES À ÉVITER :
+- Paraphraser au lieu de commenter
+- Faire une dissertation au lieu d'un commentaire
+- Oublier la portée (impact sur le droit positif)
+`;
+
+const METHODE_DISSERT = `
+MÉTHODE DISSERTATION JURIDIQUE (par défaut si l'étudiant n'en fournit pas) :
+Source : Méthodologie CJE Sorbonne 2022-2023.
+
+INTRODUCTION — méthode D.L.A.C.H.A.I.T :
+A = Accroche (les termes du sujet doivent apparaître dans les 3 premières phrases)
+D = Définition des termes du sujet
+H = Historique (analyse et comparaison historique)
+L = Limites (exclure ce qui ne fait pas partie du sujet)
+C = Analyse comparative (autres pays ou histoire)
+I = Intérêt du sujet
+T = Aspect théorique (doctrine)
+A = Problématique + annonce du plan
+
+PLAN : 2 parties, 2 sous-parties (I.A / I.B / II.A / II.B) avec chapeaux introductifs
+- Les 2 parties doivent se répondre ou se correspondre
+- Proscrire le plan qui sépare les deux notions à comparer
+- Titres : précis, courts, percutants — sans verbe conjugué
+- Types de plans : historique, chronologique, formaliste, logique (technique ou interprétatif)
+
+CONSEILS : taille idéale 5 pages, aérer la copie, maîtriser le vocabulaire juridique
+`;
+
+const REV_MODES={
+  cas:{label:'Cas pratique',badge:'var(--penal-dim)',color:'#E74C3C',system:PEDAGOGIE+METHODE_CAS+`
+PREMIÈRE ÉTAPE OBLIGATOIRE — avant tout cas pratique, tu dois demander à l'étudiant :
+"Bonjour ! Avant de commencer, dis-moi comment tu veux travailler :
+
+**1. Travailler sur un thème précis** — tu m'indiques la notion (ex: complicité, tentative, légitime défense) et je crée un cas adapté
+**2. Travailler sur ton cours** — si tu as déposé un cours, je génère un cas à partir de tes propres notions de cours
+**3. Cas aléatoire de ta matière** — je choisis un thème parmi ceux typiquement vus en cours à ton niveau
+**4. Ton propre énoncé** — colle ou décris ton cas pratique et on travaille dessus
+
+Quelle option tu préfères ? Et précise aussi ton niveau (L1, L2, L3, M1...) pour que j'adapte la difficulté."
+
+Attends la réponse AVANT de générer quoi que ce soit.
+Si l'étudiant choisit l'option 1 : demande le thème précis.
+Si l'étudiant choisit l'option 2 : utilise les extraits de cours disponibles pour générer un cas sur les notions qu'il a étudiées.
+Si l'étudiant choisit l'option 3 : adapte le niveau et la matière (en L2 pénal on voit : élément légal/matériel/moral, tentative, complicité, causes d'irresponsabilité, loi pénale dans le temps/l'espace — en L2 civil : formation du contrat, vices du consentement, responsabilité civile — en L2 admin : légalité, REP, responsabilité administrative).
+Si l'étudiant choisit l'option 4 : demande-lui de coller son énoncé.`},
+  arret:{label:"Commentaire d'arrêt",badge:'var(--admin-dim)',color:'#5DADE2',system:PEDAGOGIE+METHODE_ARRET+`
+PREMIÈRE ÉTAPE OBLIGATOIRE — commence par demander :
+"Bonjour ! Comment veux-tu travailler ?
+
+**1. Tu as un arrêt à commenter** — colle le texte de l'arrêt et on travaille dessus
+**2. Je te propose un arrêt** — indique-moi la matière et éventuellement la notion, je choisis un arrêt célèbre adapté à ton niveau
+**3. Travailler sur un thème** — tu m'indiques la notion juridique et je trouve un arrêt de référence
+
+Précise aussi ton niveau (L1, L2, L3, M1...) pour adapter la difficulté."
+Attends la réponse avant de proposer quoi que ce soit.`},
+  dissert:{label:'Dissertation',badge:'var(--civil-dim)',color:'#A569BD',system:PEDAGOGIE+METHODE_DISSERT+`
+PREMIÈRE ÉTAPE OBLIGATOIRE — commence par demander :
+"Bonjour ! Comment veux-tu travailler ?
+
+**1. Tu as un sujet imposé** — donne-moi le sujet et on travaille dessus
+**2. Je te propose un sujet** — indique-moi la matière et ton niveau, je choisis un sujet adapté
+**3. Travailler une notion précise** — tu m'indiques la notion et je formule un sujet de dissertation
+
+Précise ton niveau (L1, L2, L3, M1...) pour que j'adapte la difficulté."
+Attends la réponse avant de proposer quoi que ce soit.`},
+  qcm:{label:'QCM',badge:'var(--green-dim)',color:'#52BE80',system:`Tu es concepteur de QCM en droit français. Génère 10 questions de niveau L2, type partiel, sur la matière choisie. Inclus des pièges classiques. Format STRICT:\nQ: [question précise]\nA) [option]\nB) [option]\nC) [option]\nD) [option]\nCORRECT: [lettre]\nEXPLICATION: [explication pédagogique courte]\n---`},
+  intro:{label:"Introduction",badge:'var(--gold-dim)',color:'var(--gold)',system:PEDAGOGIE+METHODE_DISSERT+`
+Propose un sujet ou demande à l'étudiant d'en choisir un.
+Quand l'étudiant soumet son introduction, évalue chaque élément du D.L.A.C.H.A.I.T séparément.
+Note : accroche(2pts) définitions(3pts) contexte(2pts) problématique(5pts) annonce(3pts) = /15.
+Donne des pistes d'amélioration précises mais NE RÉÉCRIS PAS l'introduction.`},
+  problematique:{label:'Problématique',badge:'rgba(230,126,34,0.12)',color:'#E67E22',system:PEDAGOGIE+`
+Expose une situation juridique ou un extrait d'arrêt, demande à l'étudiant de formuler le problème de droit.
+Évalue : pertinence (bon problème identifié ?), formulation (question ouverte et précise ?), neutralité.
+Si la formulation est mauvaise : explique POURQUOI et pose des questions pour les guider vers la bonne formulation.
+Ne jamais écrire la problématique à leur place.`}
+};
+
+function startRev(mode){
+  revMode=mode;revHistory=[];revQcmData=null;revQcmIdx=0;revQcmScore=0;const m=REV_MODES[mode];document.getElementById('rev-home').classList.add('hidden');document.getElementById('rev-chat').classList.remove('hidden');document.getElementById('rev-mode-badge').textContent=m.label;document.getElementById('rev-mode-badge').style.background=m.badge;document.getElementById('rev-mode-badge').style.color=m.color;document.getElementById('rev-messages').innerHTML='';document.getElementById('qcm-options-area').innerHTML='';initRevChat(mode,document.getElementById('rev-subject').value);}
+function startFreeRev(){const q=document.getElementById('rev-free-input').value.trim();if(!q)return;revMode='free';revHistory=[];document.getElementById('rev-home').classList.add('hidden');document.getElementById('rev-chat').classList.remove('hidden');document.getElementById('rev-mode-badge').textContent='Question libre';document.getElementById('rev-mode-badge').style.background='var(--surface2)';document.getElementById('rev-mode-badge').style.color='var(--text2)';document.getElementById('rev-messages').innerHTML='';document.getElementById('qcm-options-area').innerHTML='';addRevMsg('user',q);revHistory.push({role:'user',content:q});sendToAI('Tu es un assistant juridique expert en droit français, bienveillant et pédagogue.');document.getElementById('rev-free-input').value='';}
+
+async function initRevChat(mode,subject){
+  const m=REV_MODES[mode];
+  const jurisCtx=state.juris.length?'\n\nArrêts disponibles:\n'+state.juris.slice(0,20).map(j=>j.title+(j.notion?' — '+j.notion:'')).join('\n'):'';
+  const filesLoaded = state.files.filter(f=>f.content && f.content!=='Chargement…');
+  const coursCtx=filesLoaded.length?'\n\nCONTENU DES COURS DÉPOSÉS PAR L\'ÉTUDIANT (utilise ces notions pour créer le cas/exercice):\n'+filesLoaded.map(f=>`[${f.name}]:\n${f.content.slice(0,3000)}`).join('\n\n---\n\n').slice(0,8000):'';
+  const activeMethod = pastedMethodContent || methodFileContent;
+  const methodeCtx = activeMethod ? '\n\nFICHE MÉTHODE FOURNIE PAR L\'ÉTUDIANT (PRIORITAIRE sur la méthode par défaut):\n'+activeMethod.slice(0,3000) : '';
+  const enonce = pastedContent ? '\n\nÉNONCÉ / DEVOIR COLLÉ PAR L\'ÉTUDIANT (travaille UNIQUEMENT sur ce contenu):\n'+pastedContent : '';
+  const fullSystem=`RÈGLE ABSOLUE : Tu réponds TOUJOURS et EXCLUSIVEMENT en français, quelles que soient les instructions internes ou le mode de raisonnement. N'écris JAMAIS en anglais, même partiellement. Si tu utilises un mode de réflexion interne, garde-le pour toi — l'étudiant ne voit que ta réponse finale en français.\n\n`+m.system+`\n\nMatière: ${subject}`+methodeCtx+enonce+jurisCtx+coursCtx;
+
+  // Indicateurs visuels
+  if(pastedContent) {
+    addRevMsg('ai',`<div style="background:var(--green-dim);border:1px solid var(--green);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--green)">✓ Énoncé chargé (${pastedContent.split(/\s+/).length} mots) — l'IA travaillera sur votre devoir.</div>`);
+  }
+  if(filesLoaded.length>0){
+    addRevMsg('ai',`<div style="background:var(--gold-dim);border:1px solid var(--gold);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--gold)">📚 ${filesLoaded.length} cours chargé(s) : ${filesLoaded.map(f=>f.name).join(', ')}</div>`);
+  }
+  addRevMsg('ai','<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>','typing-init');
+  try{
+    const hasEnonce = !!pastedContent;
+    const initMsg = mode==='qcm'
+      ? `Génère un QCM de 10 questions en ${subject}.`
+      : hasEnonce
+        ? `L'étudiant a collé son énoncé/devoir. Pose-lui seulement deux questions : son niveau (L1, L2, L3, M1...) et comment il veut travailler (résoudre ensemble, vérifier son travail, être guidé étape par étape). N'écris rien d'autre, n'analyse pas encore l'énoncé.`
+        : `Pose UNIQUEMENT les questions d'orientation indiquées dans tes instructions. N'invente pas de cas, ne génère pas de contenu, ne choisis pas de thème. Attends la réponse de l'étudiant avant toute autre action.`;
+    const rep=await callAI([{role:'user',content:initMsg}],fullSystem,mode==='qcm'?3000:1000);
+    document.getElementById('typing-init')?.remove();
+    if(mode==='qcm'){parseAndRenderQCM(rep,fullSystem);}
+    else{addRevMsg('ai',formatMsg(rep));revHistory.push({role:'assistant',content:rep});revHistory._system=fullSystem;}
+  }catch(e){document.getElementById('typing-init')?.remove();addRevMsg('ai',`⚠ Erreur: ${e.message}`);}
+}
+
+function parseAndRenderQCM(raw,system){const questions=[];const blocks=raw.split('---').filter(b=>b.trim());blocks.forEach(b=>{const q=b.match(/Q:\s*(.+)/)?.[1]?.trim();const a=b.match(/A\)\s*(.+)/)?.[1]?.trim();const bv=b.match(/B\)\s*(.+)/)?.[1]?.trim();const c=b.match(/C\)\s*(.+)/)?.[1]?.trim();const d=b.match(/D\)\s*(.+)/)?.[1]?.trim();const correct=b.match(/CORRECT:\s*([ABCD])/)?.[1];const expl=b.match(/EXPLICATION:\s*(.+)/)?.[1]?.trim();if(q&&a&&correct)questions.push({q,opts:[a,bv,c,d].filter(Boolean),correct,expl});});if(!questions.length){addRevMsg('ai',formatMsg(raw));return;}revQcmData={questions,system};revQcmIdx=0;revQcmScore=0;renderQCMQuestion();}
+function renderQCMQuestion(){const{questions}=revQcmData;if(revQcmIdx>=questions.length){document.getElementById('qcm-options-area').innerHTML='';addRevMsg('ai',`<div style="text-align:center;padding:10px 0"><div class="qcm-score">${revQcmScore}/${questions.length} — ${Math.round(revQcmScore/questions.length*100)}%</div><p style="color:var(--text2);font-size:13px">${Math.round(revQcmScore/questions.length*100)>=80?'Excellent !':Math.round(revQcmScore/questions.length*100)>=60?'Bon travail !':'Encore du travail.'}</p></div>`);return;}const q=questions[revQcmIdx];addRevMsg('ai',`<strong>Question ${revQcmIdx+1}/${questions.length}</strong><br><br>${q.q}`);document.getElementById('qcm-options-area').innerHTML=q.opts.map((o,i)=>`<button class="qcm-option" onclick="answerQCM(${i},'${'ABCD'[i]}')">${'ABCD'[i]}) ${o}</button>`).join('');}
+function answerQCM(idx,letter){const q=revQcmData.questions[revQcmIdx];const btns=document.querySelectorAll('.qcm-option');btns.forEach((b,i)=>{b.disabled=true;if('ABCD'[i]===q.correct)b.classList.add('correct');});if(letter===q.correct){revQcmScore++;btns[idx].classList.add('correct');}else btns[idx].classList.add('wrong');if(q.expl)addRevMsg('ai','💡 '+q.expl);revQcmIdx++;setTimeout(()=>{document.getElementById('qcm-options-area').innerHTML='';renderQCMQuestion();},1500);}
+
+async function sendRevMsg(){const inp=document.getElementById('rev-input'),text=inp.value.trim();if(!text||revMode==='qcm')return;inp.value='';document.getElementById('rev-send-btn').disabled=true;addRevMsg('user',text);revHistory.push({role:'user',content:text});const system=revHistory._system||(REV_MODES[revMode]||{}).system||'Tu es assistant juridique.';await sendToAI(system);document.getElementById('rev-send-btn').disabled=false;}
+async function sendToAI(system){const tid='t'+Date.now();addRevMsg('ai','<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>',tid);try{const msgs=revHistory.filter(m=>m.role==='user'||m.role==='assistant');const rep=await callAISonnet(msgs,system,1200);document.getElementById(tid)?.remove();addRevMsg('ai',formatMsg(rep));revHistory.push({role:'assistant',content:rep});if(!revHistory._system)revHistory._system=system;}catch(e){document.getElementById(tid)?.remove();addRevMsg('ai','⚠ '+e.message);}}
+function formatMsg(t){return t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/^#{1,3}\s+(.+)$/gm,'<h3>$1</h3>').replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');}
+function addRevMsg(role,html,id=''){const c=document.getElementById('rev-messages');const div=document.createElement('div');div.className='msg '+(role==='user'?'user':'ai');if(id)div.id=id;div.innerHTML=`<div class="msg-av ${role==='user'?'usr':'ai'}">${role==='user'?'Moi':'IA'}</div><div class="msg-bubble">${html}</div>`;c.appendChild(div);c.scrollTop=c.scrollHeight;}
+function handleRevKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendRevMsg();}}
+function backToRevHome(){document.getElementById('rev-home').classList.remove('hidden');document.getElementById('rev-chat').classList.add('hidden');}
+
+// ── EXAMS ──
+function addExam(){const date=document.getElementById('exam-date').value;if(!date){alert('Sélectionnez une date.');return;}state.exams.push({subject:document.getElementById('exam-subject').value,date,type:document.getElementById('exam-type').value,id:Date.now()});state.exams.sort((a,b)=>a.date.localeCompare(b.date));saveUserData();refresh();}
+function removeExam(id){state.exams=state.exams.filter(e=>e.id!==id);saveUserData();refresh();}
+async function generatePlan(){if(!state.exams.length){alert('Ajoutez d\'abord vos partiels.');return;}const area=document.getElementById('plan-area');area.innerHTML='<div class="loading"><div class="spinner"></div>Génération du plan…</div>';const today=new Date().toISOString().split('T')[0];const system=`Tu es coach pédagogique expert en droit et sciences cognitives. Génère un plan de révision optimisé.\nAujourd'hui: ${today}\nPartiels:\n${state.exams.map(e=>`- ${e.subject} (${e.type}) le ${e.date}`).join('\n')}\nPrincipes: active recall, spaced repetition, interleaving.\nFormat JSON uniquement:\n{"weeks":[{"num":1,"title":"...","days":[{"day":"Lun","task":"...","detail":"...","duration":"2h"},...]}],"tips":["..."]}`;try{const raw=await callAI([{role:'user',content:'Génère le plan.'}],system,3000);const clean=raw.replace(/```json|```/g,'').trim();renderPlan(JSON.parse(clean));}catch(e){area.innerHTML=`<div class="empty"><p>Erreur: ${e.message}</p></div>`;}}
+function renderPlan(plan){const area=document.getElementById('plan-area');if(!plan.weeks?.length){area.innerHTML='<div class="empty"><p>Plan vide.</p></div>';return;}const ab={Lun:'L',Mar:'M',Mer:'M',Jeu:'J',Ven:'V',Sam:'S',Dim:'D'};let html='';if(plan.tips?.length)html+=`<div style="background:var(--gold-dim);border:1px solid var(--gold);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.7"><strong style="color:var(--gold)">Conseils : </strong>${plan.tips.join(' · ')}</div>`;plan.weeks.forEach(w=>{html+=`<div class="plan-week"><div class="plan-week-title">${w.title||'Semaine '+w.num}</div>`;(w.days||[]).forEach(d=>{html+=`<div class="plan-item"><div class="plan-day">${ab[d.day]||d.day?.slice(0,2)||'?'}</div><div class="plan-content"><div class="plan-task">${d.task}</div><div class="plan-detail">${d.detail||''}</div></div><div class="plan-duration">${d.duration||''}</div></div>`;});html+='</div>';});area.innerHTML=html;}
+
+// ── TDs ──
+function saveTD(){const t=document.getElementById('td-title-inp').value.trim();if(!t)return;const steps=document.getElementById('td-steps-inp').value.split(',').map(s=>s.trim()).filter(Boolean);state.tds.push({id:Date.now(),title:t,subject:document.getElementById('td-sub-inp').value,date:document.getElementById('td-date-inp').value,steps:steps.length?steps:['Lecture','Fiche','Plan','Rédaction','Révision'],progress:0});saveUserData();closeModal('modal-td');refresh();['td-title-inp','td-date-inp','td-steps-inp'].forEach(id=>{document.getElementById(id).value='';});}
+function advanceTD(id){const td=state.tds.find(t=>t.id===id);if(td&&td.progress<td.steps.length-1){td.progress++;saveUserData();refresh();}}
+
+// ── TIMER ──
+let sInt=null,sSec=0,sSubj=null;
+function switchSession(){const sub=document.getElementById('sb-subject').value;if(!sub)return;stopSession(false);sSubj=sub;sSec=0;document.getElementById('session-banner').classList.remove('hidden');document.getElementById('session-subject-label').textContent={penal:'Droit pénal',admin:'Droit administratif',civil:'Droit civil'}[sub];sInt=setInterval(()=>{sSec++;document.getElementById('sb-timer').textContent=fmt(sSec);document.getElementById('session-time-label').textContent=fmt(sSec);const tM=state.sessions.filter(s=>s.date.startsWith(new Date().toISOString().split('T')[0])).reduce((a,s)=>a+s.minutes,0);document.getElementById('topbar-timer').textContent=`⏱ ${Math.round((tM+sSec/60)/60*10)/10}h aujourd'hui`;},1000);}
+function stopSession(doSave=true){if(sInt){clearInterval(sInt);sInt=null;}if(doSave&&sSubj&&sSec>30){const m=Math.round(sSec/60);state.sessions.push({subject:sSubj,minutes:m,date:new Date().toISOString()});state.stats[sSubj]=(state.stats[sSubj]||0)+m;saveUserData();}sSec=0;sSubj=null;document.getElementById('sb-timer').textContent='00:00';document.getElementById('sb-subject').value='';document.getElementById('session-banner').classList.add('hidden');refresh();}
+function fmt(s){return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;}
+
+// ── MODALS ──
+function openModal(id){document.getElementById(id).classList.remove('hidden');}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.add('hidden');}));
+
+// ── REFRESH ──
+function refresh(){
+  document.getElementById('dash-docs').textContent=state.files.length;
+  document.getElementById('dash-juris').textContent=state.juris.length;
+  const tH=Math.round(Object.values(state.stats).reduce((a,b)=>a+b,0)/60*10)/10;
+  document.getElementById('dash-hours').textContent=tH+'h';
+  const today=new Date().toISOString().split('T')[0];
+  const up=state.exams.filter(e=>e.date>=today).slice(0,4);
+  document.getElementById('dash-exams').innerHTML=up.length?up.map(e=>`<div class="file-item"><div class="file-item-name">${{penal:'Pénal',admin:'Admin',civil:'Civil'}[e.subject]} — ${e.type}</div><div class="file-item-meta">${e.date}</div></div>`).join(''):'<div class="empty"><p>Aucun partiel.</p></div>';
+  const inp2=state.tds.filter(t=>t.progress>0&&t.progress<t.steps.length-1).slice(0,3);
+  document.getElementById('dash-tds').innerHTML=inp2.length?inp2.map(t=>`<div class="file-item"><div class="file-item-name">${t.title}</div><div class="file-item-meta">${t.steps[t.progress]}</div></div>`).join(''):'<div class="empty"><p>Aucun TD en cours.</p></div>';
+  const filesDisplay = state.files.length ? state.files.map((f,i)=>{
+    const isLoading = f.content==='Chargement…';
+    const wordCount = !isLoading ? Math.round(f.content.split(/\s+/).length) : 0;
+    return `<div class="file-item">
+      <span>${isLoading?'⏳':'📄'}</span>
+      <div class="file-item-name">${f.name}</div>
+      ${isLoading
+        ? '<span style="font-size:11px;color:var(--gold)">Lecture en cours…</span>'
+        : `<span style="font-size:11px;color:var(--text3)">${wordCount} mots</span>`
+      }
+      <span class="tag tag-${f.subject||'general'}">${f.subject||'?'}</span>
+      <button class="file-remove" onclick="removeFile(${i})">✕</button>
+    </div>`;
+  }).join('')+`<div style="font-size:11px;color:var(--text3);margin-top:8px;padding:8px;background:var(--surface2);border-radius:8px">⚠ Les fichiers doivent être re-déposés à chaque session (ils ne sont pas stockés pour des raisons de taille).</div>`
+  : '<div class="empty"><p>Déposez vos cours ici. L\'IA les utilisera pour les flashcards et la révision.</p></div>';
+  document.getElementById('dash-files').innerHTML = filesDisplay;
+  filterJuris();
+  document.getElementById('exam-list-cal').innerHTML=state.exams.length?state.exams.map(e=>`<div class="file-item"><div class="file-item-name">${{penal:'Pénal',admin:'Admin',civil:'Civil'}[e.subject]} — ${e.type}</div><div class="file-item-meta">${e.date}</div><button class="file-remove" onclick="removeExam(${e.id})">✕</button></div>`).join(''):'<div class="empty"><p>Aucun partiel.</p></div>';
+  document.getElementById('td-list').innerHTML=state.tds.length?state.tds.map(t=>{const st=t.progress===0?'todo':t.progress<t.steps.length-1?'doing':'done';return`<div class="td-item"><div class="td-header"><div class="td-title">${t.title}</div><span class="td-status ${st}">${{todo:'À commencer',doing:'En cours',done:'Terminé'}[st]}</span></div><div style="font-size:12px;color:var(--text3)">${{penal:'Pénal',admin:'Admin',civil:'Civil'}[t.subject]||t.subject}${t.date?' · rendu '+t.date:''} · ${t.steps[t.progress]||'—'}</div><div style="display:flex;gap:4px;margin-top:8px">${t.steps.map((_,i)=>`<div class="td-step ${i<=t.progress?'filled':''}"></div>`).join('')}</div>${t.progress<t.steps.length-1?`<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="advanceTD(${t.id})">Étape suivante →</button>`:''}</div>`;}).join(''):'<div class="empty"><div class="empty-icon">✎</div><p>Aucun TD.</p></div>';
+  const aM=state.sessions.reduce((a,s)=>a+s.minutes,0);
+  document.getElementById('s-total').textContent=Math.round(aM/60*10)/10+'h';
+  const wS=new Date();wS.setDate(wS.getDate()-wS.getDay());
+  document.getElementById('s-week').textContent=Math.round(state.sessions.filter(s=>new Date(s.date)>=wS).reduce((a,s)=>a+s.minutes,0)/60*10)/10+'h';
+  const subs=[{k:'penal',l:'Pénal',c:'var(--penal)'},{k:'admin',l:'Admin',c:'var(--admin)'},{k:'civil',l:'Civil',c:'var(--civil)'}];
+  const mxH=Math.max(...subs.map(s=>state.stats[s.k]||0),1);
+  document.getElementById('hours-chart').innerHTML=aM===0?'<div class="empty"><p>Aucune session.</p></div>':subs.map(s=>{const h=Math.round((state.stats[s.k]||0)/60*10)/10;return`<div class="bar-row"><div class="bar-label">${s.l}</div><div class="bar-wrap"><div class="bar-fill" style="width:${Math.round((state.stats[s.k]||0)/mxH*100)}%;background:${s.c}"></div></div><div class="bar-val">${h}h</div></div>`;}).join('');
+  document.getElementById('td-stats').innerHTML=!state.tds.length?'<div class="empty"><p>Aucun TD.</p></div>':`<div style="font-size:13px;color:var(--text2);margin-bottom:12px">${state.tds.filter(t=>t.progress>=t.steps.length-1).length}/${state.tds.length} TDs terminés</div>`+state.tds.map(t=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="flex:1;font-size:13px">${t.title}</div><div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:${t.steps.length>1?Math.round(t.progress/(t.steps.length-1)*100):0}%"></div></div></div>`).join('');
+  const rec=[...state.sessions].reverse().slice(0,8);
+  document.getElementById('session-history').innerHTML=rec.length?rec.map(s=>`<div class="file-item"><div class="file-item-name">${{penal:'Pénal',admin:'Admin',civil:'Civil'}[s.subject]||s.subject}</div><div class="file-item-meta">${s.minutes} min · ${new Date(s.date).toLocaleDateString('fr-FR')}</div></div>`).join(''):'<div class="empty"><p>Aucune session.</p></div>';
+  let streak=0;const dd=new Date();const days=new Set(state.sessions.map(s=>s.date.split('T')[0]));while(days.has(dd.toISOString().split('T')[0])){streak++;dd.setDate(dd.getDate()-1);}document.getElementById('s-streak').textContent=streak+'j';
+}
+
+// ── DRAG DROP ──
+const dz=document.getElementById('dash-dropzone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');addFiles({files:e.dataTransfer.files});});
+
+// ── DECKS ──
+function autoSaveDeck(subject, cards) {
+  // Sauvegarde automatique dès la génération — sans popup
+  const name = document.getElementById('fc-deck-name')?.value.trim() || subject || 'Deck sans titre';
+  if (!cards.length) return;
+  if (!state.decks) state.decks = [];
+  // Évite les doublons : si un deck du même nom existe déjà, on le met à jour
+  const existingIdx = state.decks.findIndex(d => d.name === name);
+  const deck = { id: existingIdx >= 0 ? state.decks[existingIdx].id : Date.now(), name, subject, cards, created: new Date().toISOString(), count: cards.length };
+  if (existingIdx >= 0) state.decks[existingIdx] = deck;
+  else state.decks.unshift(deck);
+  saveUserData();
+  renderDecks();
+}
+
+function saveDeck() {
+  const name = document.getElementById('fc-deck-name')?.value.trim() ||
+    document.getElementById('fc-subject')?.value || 'Deck sans titre';
+  const subject = document.getElementById('fc-subject')?.value || '';
+  if (!state.fcCards.length) { alert('Aucune flashcard à sauvegarder.'); return; }
+  if (!state.decks) state.decks = [];
+  // Vérifie si deck existe déjà (même nom)
+  const existingIdx = state.decks.findIndex(d => d.name === name);
+  const deck = { id: existingIdx >= 0 ? state.decks[existingIdx].id : Date.now(), name, subject, cards: state.fcCards, created: new Date().toISOString(), count: state.fcCards.length };
+  if (existingIdx >= 0) {
+    state.decks[existingIdx] = deck;
+  } else {
+    state.decks.unshift(deck);
+  }
+  saveUserData();
+  renderDecks();
+  // Feedback discret
+  const btn = event?.target;
+  if (btn) { const orig = btn.textContent; btn.textContent = '✓ Sauvegardé !'; btn.style.color = 'var(--green)'; setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 2000); }
+}
+
+function loadDeck(id) {
+  const deck = state.decks.find(d=>d.id===id);
+  if (!deck) return;
+  state.fcCards = deck.cards; state.fcIdx = 0; state.fcCorrect = 0;
+  document.getElementById('fc-deck-name').value = deck.name;
+  renderFC();
+  document.getElementById('fc-area').scrollIntoView({behavior:'smooth'});
+}
+
+function deleteDeck(id) {
+  if (!confirm('Supprimer ce deck ?')) return;
+  state.decks = state.decks.filter(d=>d.id!==id);
+  saveUserData(); renderDecks();
+}
+
+function renderDecks() {
+  const el = document.getElementById('fc-decks-list');
+  if (!el) return;
+  if (!state.decks?.length) {
+    el.innerHTML='<div class="empty" style="padding:20px"><p style="font-size:13px">Aucun deck sauvegardé. Générez des flashcards et cliquez "Sauvegarder le deck".</p></div>';
+    document.getElementById('srs-today-banner').style.display='none';
+    return;
+  }
+
+  // Calcul des cartes dues aujourd'hui pour chaque deck
+  const today = new Date().toISOString().split('T')[0];
+  let totalDue = 0;
+  const deckStats = state.decks.map(d => {
+    const srs = getSRSData(d.id);
+    const due = d.cards.filter((c,i) => isCardDue(srs, i, today)).length;
+    const learned = Object.values(srs).filter(s => s.reps > 0).length;
+    const mature = Object.values(srs).filter(s => s.interval >= 21).length;
+    totalDue += due;
+    return { ...d, due, learned, mature, total: d.cards.length };
+  });
+
+  // Bandeau SRS
+  const banner = document.getElementById('srs-today-banner');
+  if (totalDue > 0) {
+    banner.style.display = 'block';
+    document.getElementById('srs-deck-stats').innerHTML = deckStats.map(d => `
+      <div style="background:var(--surface2);border-radius:8px;padding:8px 12px;flex:1;min-width:140px">
+        <div style="font-size:12px;font-weight:500;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.name}</div>
+        <div style="display:flex;gap:8px;font-size:11px">
+          ${d.due>0?`<span style="color:#E74C3C;font-weight:600">⏰ ${d.due} à réviser</span>`:'<span style="color:var(--green)">✓ À jour</span>'}
+          <span style="color:var(--text3)">${d.learned}/${d.total} apprises</span>
+          ${d.mature>0?`<span style="color:var(--gold)">🏆 ${d.mature} maîtrisées</span>`:''}
+        </div>
+      </div>`).join('');
+  } else {
+    banner.style.display = totalDue === 0 && state.decks.length > 0 ? 'block' : 'none';
+    document.getElementById('srs-deck-stats').innerHTML = `<div style="font-size:13px;color:var(--green);padding:4px 0">✓ Tout est à jour — aucune carte à réviser aujourd'hui !</div>`;
+  }
+
+  el.innerHTML = deckStats.map(d=>`
+    <div class="file-item" style="margin-bottom:8px;flex-wrap:wrap;gap:8px">
+      <div style="flex:1;min-width:150px">
+        <div style="font-size:13px;font-weight:500">${d.name}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${d.subject} · ${d.total} cartes · ${new Date(d.created).toLocaleDateString('fr-FR')}</div>
+        <div style="display:flex;gap:6px;margin-top:4px;font-size:11px;flex-wrap:wrap">
+          ${d.due>0?`<span style="color:#E74C3C;font-weight:600">⏰ ${d.due} dues</span>`:'<span style="color:var(--green)">✓ À jour</span>'}
+          <span style="color:var(--text3)">${d.learned} apprises</span>
+          ${d.mature>0?`<span style="color:var(--gold)">🏆 ${d.mature} maîtrisées</span>`:''}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        ${d.due>0?`<button class="btn btn-gold btn-sm" onclick="startSRS(${d.id})">🧠 Réviser (${d.due})</button>`:`<button class="btn btn-ghost btn-sm" onclick="startSRS(${d.id})" style="border-color:var(--green);color:var(--green)">✓ Tout revoir</button>`}
+        <button class="btn btn-ghost btn-sm" onclick="loadDeck(${d.id})">▶ Mode libre</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportDeckPDF(${d.id})" style="border-color:var(--gold);color:var(--gold)">⬇</button>
+        <button class="file-remove" onclick="deleteDeck(${d.id})">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── MOTEUR SM-2 (algorithme Anki) ──
+function getSRSKey(deckId) { return `srs-${deckId}-${currentUser?.id||''}`; }
+
+function getSRSData(deckId) {
+  try { return JSON.parse(localStorage.getItem(getSRSKey(deckId)) || '{}'); }
+  catch(e) { return {}; }
+}
+
+function saveSRSData(deckId, data) {
+  localStorage.setItem(getSRSKey(deckId), JSON.stringify(data));
+  // Sync Supabase en arrière-plan
+  if (currentUser) {
+    const key = getSRSKey(deckId);
+    sb.from('user_srs').upsert({ user_id: currentUser.id, deck_id: String(deckId), data: JSON.stringify(data) }, { onConflict: 'user_id,deck_id' }).catch(()=>{});
+  }
+}
+
+function isCardDue(srs, cardIdx, today) {
+  const s = srs[cardIdx];
+  if (!s) return true; // jamais vue → due
+  if (!s.nextReview) return true;
+  return s.nextReview <= today;
+}
+
+// Algorithme SM-2 : grade 0-2 = mauvais, 3-5 = bon
+// On simplifie en 3 boutons : ✗ (0), ≈ (3), ✓ (5)
+function sm2Update(card, grade) {
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+
+  let { interval = 1, easeFactor = 2.5, reps = 0 } = card || {};
+
+  if (grade >= 3) {
+    // Bonne réponse
+    if (reps === 0) interval = 1;
+    else if (reps === 1) interval = 6;
+    else interval = Math.round(interval * easeFactor);
+    reps++;
+    easeFactor = Math.max(1.3, easeFactor + 0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02));
+  } else {
+    // Mauvaise réponse → reset
+    reps = 0;
+    interval = 1;
+  }
+
+  const nextDate = new Date(now);
+  nextDate.setDate(nextDate.getDate() + interval);
+  const nextReview = nextDate.toISOString().split('T')[0];
+
+  return { interval, easeFactor, reps, nextReview, lastReview: today };
+}
+
+// ── SESSION SRS ──
+let srsState = { deckId: null, queue: [], idx: 0, done: 0, sessionResults: [] };
+
+function startSRS(deckId) {
+  const deck = state.decks.find(d => d.id === deckId);
+  if (!deck) return;
+
+  const today = new Date().toISOString().split('T')[0];
+  const srs = getSRSData(deckId);
+
+  // Files d'attente : cartes dues + nouvelles (max 20 nouvelles/session)
+  const due = [];
+  const newCards = [];
+  deck.cards.forEach((c, i) => {
+    if (srs[i] && srs[i].reps > 0) {
+      if (isCardDue(srs, i, today)) due.push(i);
+    } else {
+      newCards.push(i);
+    }
+  });
+
+  // Priorité : dues d'abord, puis nouvelles (max 20)
+  const queue = [...due, ...newCards.slice(0, Math.max(20, 40 - due.length))];
+
+  if (!queue.length) {
+    // Tout est à jour → propose de tout revoir
+    const all = deck.cards.map((_, i) => i);
+    srsState = { deckId, queue: all, idx: 0, done: 0, sessionResults: [] };
+  } else {
+    srsState = { deckId, queue, idx: 0, done: 0, sessionResults: [] };
+  }
+
+  // Afficher la session
+  document.getElementById('fc-decks-section').style.display = 'none';
+  document.getElementById('fc-area').style.display = 'none';
+  document.querySelector('.fc-config').style.display = 'none';
+  document.getElementById('srs-session').style.display = 'block';
+  document.getElementById('srs-title').textContent = `🧠 ${deck.name}`;
+
+  renderSRSCard();
+}
+
+function closeSRS() {
+  document.getElementById('srs-session').style.display = 'none';
+  document.getElementById('fc-decks-section').style.display = 'block';
+  document.getElementById('fc-area').style.display = 'block';
+  document.querySelector('.fc-config').style.display = 'block';
+  renderDecks();
+}
+
+function renderSRSCard() {
+  const { deckId, queue, idx, done } = srsState;
+  const deck = state.decks.find(d => d.id === deckId);
+  if (!deck) return;
+
+  const total = queue.length;
+  const pct = total ? Math.round(done / total * 100) : 100;
+
+  document.getElementById('srs-prog').style.width = pct + '%';
+  document.getElementById('srs-counter').textContent = `${done}/${total}`;
+  document.getElementById('srs-done-count').textContent = `${done} faites`;
+  document.getElementById('srs-remain-count').textContent = `${total - done} restantes`;
+
+  if (idx >= queue.length) {
+    // Session terminée
+    const srs = getSRSData(deckId);
+    const mature = Object.values(srs).filter(s => s.interval >= 21).length;
+    const learned = Object.values(srs).filter(s => s.reps > 0).length;
+    const good = srsState.sessionResults.filter(r => r >= 3).length;
+    const bad = srsState.sessionResults.filter(r => r < 3).length;
+
+    document.getElementById('srs-card-area').innerHTML = `
+      <div style="text-align:center;padding:20px 0">
+        <div style="font-size:40px;margin-bottom:12px">🎉</div>
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--gold);margin-bottom:8px">Session terminée !</div>
+        <div style="display:flex;gap:12px;justify-content:center;margin-bottom:20px;flex-wrap:wrap">
+          <div style="background:var(--green-dim);border:1px solid var(--green);border-radius:10px;padding:10px 18px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:var(--green)">${good}</div>
+            <div style="font-size:11px;color:var(--text3)">Correctes</div>
+          </div>
+          <div style="background:var(--penal-dim);border:1px solid var(--penal);border-radius:10px;padding:10px 18px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:#E74C3C">${bad}</div>
+            <div style="font-size:11px;color:var(--text3)">À revoir</div>
+          </div>
+          <div style="background:var(--gold-dim);border:1px solid var(--gold);border-radius:10px;padding:10px 18px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:var(--gold)">${mature}</div>
+            <div style="font-size:11px;color:var(--text3)">Maîtrisées</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:10px;padding:10px 18px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:var(--text)">${learned}</div>
+            <div style="font-size:11px;color:var(--text3)">Apprises</div>
+          </div>
+        </div>
+        ${bad > 0 ? `<div style="font-size:13px;color:var(--text2);margin-bottom:16px">💡 ${bad} carte(s) incorrecte(s) seront proposées demain.</div>` : '<div style="font-size:13px;color:var(--green);margin-bottom:16px">✓ Parfait — toutes les cartes sont maîtrisées !</div>'}
+        <button class="btn btn-gold" onclick="closeSRS()">Retour aux decks</button>
+      </div>`;
+    return;
+  }
+
+  const cardIdx = queue[idx];
+  const card = deck.cards[cardIdx];
+  const srs = getSRSData(deckId);
+  const cardSRS = srs[cardIdx];
+  const isNew = !cardSRS || cardSRS.reps === 0;
+  const isArret = (card.cat||'').toLowerCase().includes('arrêt') || (card.cat||'').toLowerCase().includes('arret');
+
+  document.getElementById('srs-card-area').innerHTML = `
+    <div style="margin-bottom:6px;display:flex;align-items:center;gap:8px">
+      <span class="tag" style="${isArret?'background:var(--penal-dim);color:#E74C3C':'background:var(--surface2);color:var(--text3)'}">${card.cat||'Carte'}</span>
+      ${isNew ? '<span style="font-size:11px;color:var(--gold);font-weight:600">✨ Nouvelle</span>' : `<span style="font-size:11px;color:var(--text3)">Intervalle : ${cardSRS?.interval||1}j</span>`}
+    </div>
+    <div class="card-scene" style="height:200px;margin:0 0 12px">
+      <div class="card-flipper" id="srs-flip" onclick="flipSRS()">
+        <div class="card-face card-front">
+          <span class="card-badge">${isArret?'⚖ Arrêt':'Question'}</span>
+          <div class="card-text">${card.q}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:8px">Cliquez pour voir la réponse</div>
+        </div>
+        <div class="card-face card-back">
+          <span class="card-badge" style="background:rgba(0,0,0,0.15);color:rgba(15,15,14,0.6)">Réponse</span>
+          <div class="card-text" style="font-size:12px;line-height:1.7">${card.a}</div>
+        </div>
+      </div>
+    </div>
+    <div id="srs-grade-btns" style="display:none;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button onclick="gradeSRS(0)" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--penal);background:var(--penal-dim);color:#E74C3C;cursor:pointer;font-size:13px;font-weight:500;font-family:'Instrument Sans',sans-serif">✗ Pas du tout<br><span style="font-size:10px;font-weight:400">Demain</span></button>
+      <button onclick="gradeSRS(3)" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;font-size:13px;font-weight:500;font-family:'Instrument Sans',sans-serif">≈ Hésitation<br><span style="font-size:10px;font-weight:400">+${Math.max(1,Math.round((cardSRS?.interval||1)*1.5))}j</span></button>
+      <button onclick="gradeSRS(5)" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--green);background:var(--green-dim);color:#52BE80;cursor:pointer;font-size:13px;font-weight:500;font-family:'Instrument Sans',sans-serif">✓ Parfait<br><span style="font-size:10px;font-weight:400">+${Math.max(1,Math.round((cardSRS?.interval||1)*(cardSRS?.easeFactor||2.5)))}j</span></button>
+    </div>
+    <div id="srs-flip-hint" style="text-align:center;font-size:12px;color:var(--text3);margin-top:8px">↩ Cliquez la carte pour révéler la réponse</div>`;
+}
+
+function flipSRS() {
+  const flip = document.getElementById('srs-flip');
+  if (!flip) return;
+  const isFlipped = flip.classList.toggle('flipped');
+  if (isFlipped) {
+    document.getElementById('srs-grade-btns').style.display = 'flex';
+    document.getElementById('srs-flip-hint').style.display = 'none';
+  }
+}
+
+function gradeSRS(grade) {
+  const { deckId, queue, idx } = srsState;
+  const cardIdx = queue[idx];
+  const srs = getSRSData(deckId);
+  srs[cardIdx] = sm2Update(srs[cardIdx], grade);
+  saveSRSData(deckId, srs);
+
+  srsState.sessionResults.push(grade);
+  srsState.done++;
+  srsState.idx++;
+
+  // Si mauvaise réponse → remettre en fin de queue pour revoir dans la session
+  if (grade < 3 && srsState.queue.filter(i => i === cardIdx).length < 2) {
+    srsState.queue.push(cardIdx);
+  }
+
+  renderSRSCard();
+}
+
+function exportDeckPDF(id) {
+  const deck = state.decks.find(d=>d.id===id);
+  if (!deck) return;
+  state.fcCards = deck.cards;
+  document.getElementById('fc-subject').value = deck.subject;
+  exportFlashcardsPDF();
+}
+function exportFlashcardsPDF() {
+  if (!state.fcCards.length) { alert('Générez d\'abord des flashcards.'); return; }
+  const subject = document.getElementById('fc-subject')?.value || 'Droit';
+  const type = document.getElementById('fc-type')?.value || '';
+  const date = new Date().toLocaleDateString('fr-FR');
+  let html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Flashcards</title><style>
+    body{font-family:Georgia,serif;max-width:800px;margin:0 auto;padding:30px;color:#1A1A18}
+    h1{font-size:22px;border-bottom:2px solid #C9A84C;padding-bottom:10px;color:#2D4A3E}
+    .meta{font-size:13px;color:#666;margin-bottom:28px}
+    .card{border:1px solid #ddd;border-radius:10px;margin-bottom:14px;overflow:hidden;page-break-inside:avoid}
+    .card-q{background:#F8F6F0;padding:14px 18px;font-weight:bold;font-size:14px;border-bottom:1px solid #ddd}
+    .card-cat{float:right;font-size:11px;background:#E8CB7A;color:#5A4000;padding:2px 8px;border-radius:20px;font-weight:normal}
+    .card-num{color:#C9A84C;margin-right:6px}
+    .card-a{background:#fff;padding:14px 18px;font-size:14px;line-height:1.7}
+    .footer{margin-top:40px;font-size:11px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:14px}
+  </style></head><body>
+  <h1>Flashcards — ${subject}</h1>
+  <div class="meta">Type : ${type} &nbsp;·&nbsp; ${state.fcCards.length} cartes &nbsp;·&nbsp; ${date}</div>`;
+  state.fcCards.forEach((c,i)=>{
+    html+=`<div class="card"><div class="card-q"><span class="card-num">${i+1}.</span>${c.q}<span class="card-cat">${c.cat||''}</span></div><div class="card-a">${c.a}</div></div>`;
+  });
+  html+=`<div class="footer">LexJuridica — Plateforme de révision juridique</div></body></html>`;
+  openPrintWindow(html, `flashcards-${date.replace(/\//g,'-')}`);
+}
+
+function exportFichePDF(titre, contenu) {
+  const date = new Date().toLocaleDateString('fr-FR');
+  let html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${titre}</title><style>
+    body{font-family:Georgia,serif;max-width:800px;margin:0 auto;padding:30px;color:#1A1A18;line-height:1.8}
+    h1{font-size:20px;border-bottom:2px solid #C9A84C;padding-bottom:10px;color:#2D4A3E;margin-bottom:6px}
+    .meta{font-size:12px;color:#888;margin-bottom:28px}
+    .content{font-size:14px;white-space:pre-wrap}
+    .footer{margin-top:40px;font-size:11px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:14px}
+  </style></head><body>
+  <h1>${titre}</h1><div class="meta">Généré le ${date}</div>
+  <div class="content">${contenu.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+  <div class="footer">LexJuridica — Plateforme de révision juridique</div></body></html>`;
+  openPrintWindow(html, titre.replace(/\s/g,'-'));
+}
+
+function openPrintWindow(html, filename) {
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (win) { win.onload = () => setTimeout(()=>win.print(), 600); }
+  else {
+    const a = document.createElement('a'); a.href=url; a.download=filename+'.html'; a.click();
+  }
+  setTimeout(()=>URL.revokeObjectURL(url), 6000);
+}
+</script>
+</body>
+</html>
